@@ -1,0 +1,6 @@
+*.fpkg
+*.jar
+.GITHUB_TOKEN
+artifact/
+build/
+lib/
