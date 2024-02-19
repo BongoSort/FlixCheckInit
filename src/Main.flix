@@ -1,5 +1,4 @@
 use Random.Random;
-
 def main(): Unit \ IO  =
     region rc {
         let y = Random.new();
@@ -8,12 +7,14 @@ def main(): Unit \ IO  =
         println("Valgt frugt: ${z}")
     }
 
+// Seed is a Int64
 type alias Seed = Int64
 
-
+// Generators using a Seed
 enum Gen[a] {
     case Gen(Seed -> a)
 }
+
 
 pub trait Arbitrary[a] {
     pub def arbitrary(): Gen[a]
