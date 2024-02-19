@@ -28,8 +28,9 @@ enum Gen[a] {
 
 // PAUSE!!!
 //nextNatWithMax(r: Random, m: Int32)
-pub def choose(x: Int32, y: Int32) : Gen[Int32] = 
-    Gen.Gen(seed -> Random.nextNatWithMax(Random.newWithSeed(seed), y))
+
+// pub def choose(x: Int32, y: Int32) : Gen[Int32] = 
+//     Gen.Gen(seed -> Random.nextNatWithMax(Random.newWithSeed(seed), y))
     
 
 
