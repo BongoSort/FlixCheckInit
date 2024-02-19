@@ -1,31 +1,32 @@
 use Random.Random;
 
 def main(): Unit \ IO  =
-    println("BOB");
     region rc {
         let y = Random.new();
-        let fruits = Array#{"Apple", "Pear", "Mango"} @ rc;
+        let fruits = Array#{"Apple", "Pear","Mango"} @ rc;
         let z = Random.choose(y, fruits);
-        println("Funktionsvalg: ${z}")
+        println("Valgt frugt: ${z}")
     }
-    // region rc {
-    //     let y = Random.new();
-    //     let fruits = Array#{"Apple", "Pear", "Mango"} @ rc;
-    //     let z = Random.choose(y, fruits);
-    //     println("Funktionsvalg: ${z}");
-    //     
-    // }
+
+type alias Seed = Int64
 
 
-// pub trait Arbitrary[a] {
-//     pub def arbitrary(x: a): Gen[a]
-// }
+enum Gen[a] {
+    case Gen(Seed -> a)
+}
 
-// type alias Seed = Int64
+pub trait Arbitrary[a] {
+    pub def arbitrary(): Gen[a]
+}
 
-// enum Gen[a] {
-//     case Gen(Seed -> a)
-// }
+enum Property[a] {
+    case Property(a -> Bool)
+}
+
+pub trait Testable[a] {
+    pub def testable(x: a): Property[a]
+}
+
 
 
 // instance Arbitrary[Int32] {
