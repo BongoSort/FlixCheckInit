@@ -1,26 +1,40 @@
-use Random.Random
+use Random.Random;
 
-
-
-// The main entry point.
-def main(): Unit \ IO =
-    let y = Random.new();
+def main(): Unit \ IO  =
+    println("BOB");
     region rc {
+        let y = Random.new();
         let fruits = Array#{"Apple", "Pear", "Mango"} @ rc;
         let z = Random.choose(y, fruits);
         println("Funktionsvalg: ${z}")
     }
+    // region rc {
+    //     let y = Random.new();
+    //     let fruits = Array#{"Apple", "Pear", "Mango"} @ rc;
+    //     let z = Random.choose(y, fruits);
+    //     println("Funktionsvalg: ${z}");
+    //     
+    // }
 
-pub trait Arbitrary[a] {
-    pub def arbitrary(x: a): Gen[a]
-}
 
-type alias Seed = Int64
+// pub trait Arbitrary[a] {
+//     pub def arbitrary(x: a): Gen[a]
+// }
 
-enum Gen[a] {
-    case Gen(Seed -> a)
-}
+// type alias Seed = Int64
 
+// enum Gen[a] {
+//     case Gen(Seed -> a)
+// }
+
+
+// instance Arbitrary[Int32] {
+//     pub def arbitrary(x: Int32): Gen[Int32] = 5
+// }
+
+
+// pub def abc() : Int64 -> Int32 = 
+//     Seed -> 5
 
 // { Random.choose(seed, a);}
 //newtype Gen a = Gen (Rand -> a)
@@ -34,13 +48,7 @@ enum Gen[a] {
     
 
 
-instance Arbitrary[Int32] {
-    pub def arbitrary(x: Int32): Gen[Int32] = 5
 
-}
-
-pub def abc() : Int64 -> Int32 = 
-    seed -> 5
 
 //
 //instance Arbitrary Int {

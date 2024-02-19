@@ -3,4 +3,4 @@ name        = "FlixCheckInit"
 description = "test"
 version     = "0.1.0"
 flix        = "0.44.0"
-authors     = ["Rune Schuster <202001199@post.au.dk>", Kasper, Svend]
+authors     = ["Rune Schuster <202001199@post.au.dk>", "Kasper", "Svend"]

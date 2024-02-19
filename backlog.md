@@ -8,11 +8,11 @@
 
 ### Good to know
 
-Create project:
+Create project from console:
 
 java -jar flix.jar init
 
-compile and run project
+compile and run project from console:
 
 java -jar flix.jar run
 
