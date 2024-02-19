@@ -1,3 +1,4 @@
+mod Bob {    
     pub def caller(): Unit \ IO =
         oddOrEven(12345) |> println;
         oddOrEven(1234) |> println;
@@ -5,7 +6,7 @@
         oddOrEven(1) |> println;
         oddOrEven(42) |> println;
         oddOrEven(-1) |> println
-    
+
 
     pub def isOdd(n: Int32): Bool =
         if (n == 0) false else if (n < 0) isEvn(n + 1) else isEvn(n - 1)
@@ -17,3 +18,4 @@
         let res = isOdd(n);
         if (res) println("The number ${n} is Odd") 
             else println("The number ${n} is Even") 
+}

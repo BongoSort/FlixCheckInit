@@ -1,5 +1,7 @@
 use Random.Random;
+use Bob.caller;
 def main(): Unit \ IO  =
+    Bob.caller();
     region rc {
         let y = Random.new();
         let fruits = Array#{"Apple", "Pear","Mango"} @ rc;
