@@ -1,52 +1,52 @@
 use Random.Random
-
+use Gen.Gen
+use OE.caller
+use Arbitrary.Arbitrary
 
 
 // The main entry point.
 def main(): Unit \ IO =
-    let y = Random.new();
-    region rc {
-        let fruits = Array#{"Apple", "Pear", "Mango"} @ rc;
-        let z = Random.choose(y, fruits);
-        println("Funktionsvalg: ${z}")
-    }
+    let generator : Gen[Int32] = Arbitrary.arbitrary();
+    let rand : Random = Random.new();
 
-pub trait Arbitrary[a] {
-    pub def arbitrary(x: a): Gen[a]
-}
+    printWithRandomSeed(100, rand, generator);
+    checkOdd(10)
 
-type alias Seed = Int64
+pub def printWithRandomSeed(n: Int32, rng: Random, gen: Gen[Int32]): Unit \ IO =
+    if (n >= 0)
+        let genFunc = match gen {case Gen.Gen(f) => f};
+        let seed = Random.nextInt64(rng);
+        println(genFunc(seed));
+        printWithRandomSeed(n - 1, rng, gen)
+    else
+        println("Done")
 
-// enum Gen[a] {
-//     case Gen(Seed -> a)
-// }
-
-enum Gen[a](Seed -> a)
-
-
-
-
-// { Random.choose(seed, a);}
-//newtype Gen a = Gen (Rand -> a)
-//choose :: (Int, Int) -> Gen Int
-
-// PAUSE!!!
-//nextNatWithMax(r: Random, m: Int32)
-pub def choose(x: Int32, y: Int32) : Gen[Int32] = 
-    Gen.Gen(seed -> Random.nextNatWithMax(Random.newWithSeed(seed), y))
+// Initial function for checking isOdd "times" number of times
+pub def checkOdd(times : Int32): Unit \ IO =
+    if (times > 0)
+        let gen = Gen.chooseInterval(-20, 20);
+        let func = match gen {case Gen.Gen(f) => f};
+        let seed = Random.nextInt64(Random.new());
+        let number = func(seed);
+        let res = OE.isOdd(number);
+        println("Is the number ${number} Odd? : ${res}");
+        checkOdd(times - 1)
+    else
+        println("Done checking isOdd")
     
 
 
-instance Arbitrary[Int32] {
-    pub def arbitrary(x: Int32): Gen[Int32] = 5
-
-}
 
 
-pub def abc() : Int64 -> Int32 = 
-    seed -> 5
 
-//
-//instance Arbitrary Int {
-//    def arbitrary(): Int = Choose(-20, 20)
-//}
+
+// Seed needed for random generator
+type alias Rand = Int64
+
+
+// 1 lav generator
+// 2 osv
+    
+// HASKELL newtype Gen a = Gen (Rand -> a)
+
+
