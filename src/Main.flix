@@ -17,9 +17,13 @@ pub trait Arbitrary[a] {
 
 type alias Seed = Int64
 
-enum Gen[a] {
-    case Gen(Seed -> a)
-}
+// enum Gen[a] {
+//     case Gen(Seed -> a)
+// }
+
+enum Gen[a](Seed -> a)
+
+
 
 
 // { Random.choose(seed, a);}
@@ -37,6 +41,7 @@ instance Arbitrary[Int32] {
     pub def arbitrary(x: Int32): Gen[Int32] = 5
 
 }
+
 
 pub def abc() : Int64 -> Int32 = 
     seed -> 5
