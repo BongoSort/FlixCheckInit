@@ -6,10 +6,14 @@ mod Arbitrary {
     }
 
     instance Arbitrary[Int32] {
-        pub def arbitrary(): Gen[Int32] = Gen.chooseInterval(-20, 20)
+        pub def arbitrary(): Gen[Int32] = Gen.chooseInterval(-20, 20) //Hardcoded interval, fix later?
     }
 
-    pub enum Color {
-            case Red, Green, Blue
-        }
+    instance Arbitrary[Bool] {
+        pub def arbitrary(): Gen[Bool] = Gen.chooseBool()
+    }
+
+    // instance Arbitrary[(Arbitrary[Int32], Arbitrary[Bool])] {
+    //     pub def arbitrary(): Gen[(a, b)] = (Arbitrary[a], Arbitrary[b])
+    // }
 }

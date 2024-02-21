@@ -1,8 +1,6 @@
 use Random.Random
-use Gen.Gen
-use OE.caller
 use Arbitrary.Arbitrary
-
+use Gen.Gen
 
 // The main entry point.
 def main(): Unit \ IO =
@@ -33,20 +31,7 @@ pub def checkOdd(times : Int32): Unit \ IO =
         checkOdd(times - 1)
     else
         println("Done checking isOdd")
-    
 
 
-
-
-
-
-// Seed needed for random generator
-type alias Rand = Int64
-
-
-// 1 lav generator
-// 2 osv
-    
-// HASKELL newtype Gen a = Gen (Rand -> a)
 
 
