@@ -1,4 +1,4 @@
-mod Bob {    
+mod OE {    
     pub def caller(): Unit \ IO =
         oddOrEven(12345) |> println;
         oddOrEven(1234) |> println;

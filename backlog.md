@@ -1,27 +1,56 @@
-# Backlog
+## Backlog
+
+* Gen for flere typer: (Int64, strenge, bool, List, generiske typer?? osv)
+* Unit
+* Bool OK
+* Char
+* Float32	
+* Float64	
+* Int8
+* Int16
+* Int32 OK Testet
+* Int64
+* String
+* BigInt
+* BigDecimal
+* Tuples
+* Lists
+* Vector
+
+
+* Gen skal være smart! (for Int32 tjek gerne 0,1,-1, min-tal, max-tal)
+
+* Type class Testable som benytter typen Property
+* Properties
+* Properties med flere regler 
+
+* Shrink - reducér problemet til det mindste
+
+* Arbitrary for flere typer
+
+* QuickCheck for Flix...
 
 ## TODO
 
-* everything
+Lav bachelor paper
+Introduktion f.eks.
+
+## Designovervejelser
+Lav generatoren således at den spytter en liste ud med ting der kan afprøves, i stedet for specifikke tal, strenge mm. (?)
+"noget.noget.noget" er træls
+gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har testet
+
+
 
 ### Spørgsmål til Magnus
 
-### Good to know
+Hvordan renamer man en mod?
+11.2 Docs siger:
+A qualified use with rename: use A.B.Color => AColor
+Men det virker ikke.
 
-Create project from console:
 
-java -jar flix.jar init
+Hvorfor kan f.eks. Arbitrary finde Gen uden at Gen specifikt er blevet brugt (use) i Arbitrary?
 
-compile and run project from console:
 
-java -jar flix.jar run
-
-The Flix build system supports the following commands:
-
-* init: creates a new Flix project in the current directory.
-* check: checks the current project for compiler errors.
-* build: builds the current project (i.e. emits Java bytecode).
-* build-jar: builds a jar-file from the current project.
-* build-pkg: builds a fpkg-file from the current project.
-* run: runs main in current project.
-* test: runs all tests in the current project.
+Kan man lave Docs??

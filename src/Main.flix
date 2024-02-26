@@ -1,60 +1,37 @@
-use Random.Random;
-use Bob.caller;
-def main(): Unit \ IO  =
-    Bob.caller();
-    region rc {
-        let y = Random.new();
-        let fruits = Array#{"Apple", "Pear","Mango"} @ rc;
-        let z = Random.choose(y, fruits);
-        println("Valgt frugt: ${z}")
-    }
+use Random.Random
+use Arbitrary.Arbitrary
+use Gen.Gen
 
-// Seed is a Int64
-type alias Seed = Int64
+// The main entry point.
+def main(): Unit \ IO =
+    let generator : Gen[Int32] = Arbitrary.arbitrary();
+    let rand : Random = Random.new();
 
-// Generators using a Seed
-enum Gen[a] {
-    case Gen(Seed -> a)
-}
+    printWithRandomSeed(100, rand, generator);
+    checkOdd(10)
 
+pub def printWithRandomSeed(n: Int32, rng: Random, gen: Gen[Int32]): Unit \ IO =
+    if (n >= 0)
+        let genFunc = match gen {case Gen.Gen(f) => f};
+        let seed = Random.nextInt64(rng);
+        println(genFunc(seed));
+        printWithRandomSeed(n - 1, rng, gen)
+    else
+        println("Done")
 
-pub trait Arbitrary[a] {
-    pub def arbitrary(): Gen[a]
-}
-
-enum Property[a] {
-    case Property(a -> Bool)
-}
-
-pub trait Testable[a] {
-    pub def testable(x: a): Property[a]
-}
-
-
-
-// instance Arbitrary[Int32] {
-//     pub def arbitrary(x: Int32): Gen[Int32] = 5
-// }
-
-
-// pub def abc() : Int64 -> Int32 = 
-//     Seed -> 5
-
-// { Random.choose(seed, a);}
-//newtype Gen a = Gen (Rand -> a)
-//choose :: (Int, Int) -> Gen Int
-
-// PAUSE!!!
-//nextNatWithMax(r: Random, m: Int32)
-
-// pub def choose(x: Int32, y: Int32) : Gen[Int32] = 
-//     Gen.Gen(seed -> Random.nextNatWithMax(Random.newWithSeed(seed), y))
-    
+// Initial function for checking isOdd "times" number of times
+pub def checkOdd(times : Int32): Unit \ IO =
+    if (times > 0)
+        let gen = Gen.chooseInterval(-20, 20);
+        let func = match gen {case Gen.Gen(f) => f};
+        let seed = Random.nextInt64(Random.new());
+        let number = func(seed);
+        let res = OE.isOdd(number);
+        println("Is the number ${number} Odd? : ${res}");
+        checkOdd(times - 1)
+    else
+        println("Done checking isOdd")
 
 
 
 
-//
-//instance Arbitrary Int {
-//    def arbitrary(): Int = Choose(-20, 20)
-//}
