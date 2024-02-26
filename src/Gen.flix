@@ -4,10 +4,10 @@
 
 pub enum Gen[a](Rand -> a \ IO)
 
-// Forslag til nemmere overblik?
+/// Forslag til nemmere overblik?
 pub type alias GenTest[a] = Rand -> a \ IO
 
-// Seed needed for random generator
+/// Seed for random generator
 type alias Rand = Int64
 
 type alias Genn[a] = {
