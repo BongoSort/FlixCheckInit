@@ -9,6 +9,9 @@ def main(): Unit \ IO =
     printWithRandomSeed(100, rand, generator);
     checkOdd(10)
 
+/// Prints from an interval of numbers n amount of times
+///
+/// Uses the Generator with a random seed
 pub def printWithRandomSeed(n: Int32, rng: Random, gen: Gen[Int32]): Unit \ IO =
     if (n >= 0)
         let seed = Random.nextInt64(rng);
@@ -17,7 +20,7 @@ pub def printWithRandomSeed(n: Int32, rng: Random, gen: Gen[Int32]): Unit \ IO =
     else
         println("Done")
 
-// Initial function for checking isOdd "times" number of times
+/// Initial function for checking isOdd "times" number of times
 pub def checkOdd(times : Int32): Unit \ IO =
     if (times > 0)
         let gen = Gen.chooseInterval(-20, 20);
