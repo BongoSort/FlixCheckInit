@@ -54,8 +54,3 @@ Men det virker ikke.
 Hvorfor kan f.eks. Arbitrary finde Gen uden at Gen specifikt er blevet brugt (use) i Arbitrary?
 
 ### Svar
-// fx Int= 42
-/// f: Int -> a
-// g: Int -> b
-// x -> (f(x), g(x)) ->(f.eks true, true, men gerne noget andet også)
-// Int ->(a,b)
