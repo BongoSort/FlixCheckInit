@@ -11,6 +11,7 @@ def main(): Unit \ IO =
     checkOdd(10)
 
 /// Prints from an interval of numbers n amount of times
+///
 /// Uses the Generator with a random seed
 pub def printWithRandomSeed(n: Int32, rng: Random, gen: Gen[Int32]): Unit \ IO =
     if (n >= 0)
