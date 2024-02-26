@@ -1,5 +1,3 @@
-
-
 mod Arbitrary {
     pub trait Arbitrary[a] {
         pub def arbitrary(): Gen[a]

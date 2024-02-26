@@ -2,26 +2,24 @@
 //     case Gen(Rand -> a \ IO)
 // }
 
-pub enum Gen[a](Rand -> a \ IO)
+pub enum GenTest[a](Rand -> a \ IO)
 
 // Forslag til nemmere overblik?
-pub type alias GenTest[a] = Rand -> a \ IO
+pub type alias Gen[a] = Rand -> a \ IO
 
 // Seed needed for random generator
-type alias Rand = Int64
+pub type alias Rand = Int64
 
-type alias Genn[a] = {
-    unGen = Int32 -> Rand -> a
-}
+// type alias Genn[a] = {
+//     unGen = Int32 -> Rand -> a
+// }
 
 mod Gen {
     // Returns a Generator that uniformly generates values in the interval [lower, upper]
-    pub def chooseInterval(lower: Int32, upper: Int32) : Gen[Int32] = 
-        let func = rand -> Random.nextNatWithMax(Random.newWithSeed(rand), (upper + 1) - lower) + lower;
-        Gen.Gen(func)
+    pub def chooseInterval(lower: Int32, upper: Int32): Gen[Int32] = 
+        rand -> Random.nextNatWithMax(Random.newWithSeed(rand), (upper + 1) - lower) + lower
 
     pub def chooseBool() : Gen[Bool] =
-        let func = rand -> Random.nextBool(Random.newWithSeed(rand));
-        Gen.Gen(func)
+        rand -> Random.nextBool(Random.newWithSeed(rand))
 
 }
