@@ -36,13 +36,14 @@ Lav bachelor paper
 Introduktion f.eks.
 
 ## Designovervejelser
+
 Lav generatoren således at den spytter en liste ud med ting der kan afprøves, i stedet for specifikke tal, strenge mm. (?)
 "noget.noget.noget" er træls
 gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har testet
 
 
 
-### Spørgsmål til Magnus
+## Spørgsmål til Magnus
 
 Hvordan renamer man en mod?
 11.2 Docs siger:
@@ -52,5 +53,9 @@ Men det virker ikke.
 
 Hvorfor kan f.eks. Arbitrary finde Gen uden at Gen specifikt er blevet brugt (use) i Arbitrary?
 
-
-Kan man lave Docs??
+### Svar
+// fx Int= 42
+/// f: Int -> a
+// g: Int -> b
+// x -> (f(x), g(x)) ->(f.eks true, true, men gerne noget andet også)
+// Int ->(a,b)
