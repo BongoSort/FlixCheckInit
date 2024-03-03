@@ -6,7 +6,7 @@ pub enum Gen[a](Rand -> a)
 
 // TODO: Assert safe bounds!
 // Returns a Generator that uniformly generates values in the interval [lower, upper]
-pub def chooseInterval(lower: Int32, upper: Int32): Gen[Int32] = 
+pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
     Gen.Gen(rand -> Int32.mod(rand, (upper + 1) - lower) + lower)
 
 pub def chooseBool(): Gen[Bool] =
@@ -24,15 +24,45 @@ pub def chooseAlphabetChar(): Gen[Char] =
         }
     )
 
+pub def bind(gen: Gen[a], f: a -> Gen[b]): Gen[b] =
+    Gen.Gen(
+        rand ->
+            match gen {
+                case Gen.Gen(g) => 
+                    let res: a = g(rand);
+                    let newGen: Gen[b]  = f(res);
+                    match newGen {
+                        case Gen.Gen(f) => f(rand)
+                    }
+        }
+    )
 
-pub def oneOf(xs: List[t]): Result[String, Gen[t]] \ IO =
-    if (List.isEmpty(xs)) 
-        Result.Err("Method oneOf called on empty list!")
-     else 
-        let size = List.length(xs);
-        let i = Random.nextNatWithMax(Random.new(), size);
-        let res = Vector.get(i, List.toVector(xs));
-        Result.Ok(Gen.Gen(rand -> res))
+
+pub def oneOf(xs: List[Gen[a]]): Result[String, Gen[a]] =
+    match xs {
+        case Nil => Result.Err("Method oneOf called on empty list!")
+        case _ :: _ => 
+            let v = List.toVector(xs);
+            let size = Vector.length(v);
+            let i_gen : Gen[Int32] = chooseInt(0, size - 1);
+
+            let func : Int32 -> Int32 = match i_gen {case Gen.Gen(f) => f};
+            let funci : Int32 -> Int32 = i -> func(i);
+            
+            // let i = Int32.mod(rand, size);
+            // let r = i -> Vector.get(i, List.toVector(xs));
+            let retfunc : Gen[a] = Gen.Gen(rand -> Vector.get(funci(rand), v));
+
+            Result.Ok(retfunc)
+            // Result.Err("Not implemented yet!")
+    }
+    // if (List.isEmpty(xs)) 
+    //     Result.Err("Method oneOf called on empty list!")
+    //  else 
+    //     let size = List.length(xs);
+    //     let i = chooseInt(0, size - 1);
+    //     let r = i -> Vector.get(i, List.toVector(xs));
+    //     Result.Ok(Gen.Gen(rand -> res))
     
 
 
@@ -42,7 +72,7 @@ pub trait Arbitrary[a] {
 }
 
 instance Arbitrary[Int32] {
-    pub def arbitrary(): Gen[Int32] = chooseInterval(-20, 20) //Hardcoded interval, fix later?
+    pub def arbitrary(): Gen[Int32] = chooseInt(-20, 20)
 }
 
 instance Arbitrary[Bool] {
