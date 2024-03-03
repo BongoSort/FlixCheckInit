@@ -24,13 +24,13 @@ pub def chooseAlphabetChar(): Gen[Char] =
         }
     )
 
-pub def bind(gen: Gen[a], f: a -> Gen[b]): Gen[b] =
+pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
         rand ->
             match gen {
                 case Gen.Gen(g) => 
                     let res: a = g(rand);
-                    let newGen: Gen[b]  = f(res);
+                    let newGen: Gen[b]  = fun(res);
                     match newGen {
                         case Gen.Gen(f) => f(rand)
                     }
@@ -44,25 +44,8 @@ pub def oneOf(xs: List[Gen[a]]): Result[String, Gen[a]] =
         case _ :: _ => 
             let v = List.toVector(xs);
             let size = Vector.length(v);
-            let i_gen : Gen[Int32] = chooseInt(0, size - 1);
-
-            let func : Int32 -> Int32 = match i_gen {case Gen.Gen(f) => f};
-            let funci : Int32 -> Int32 = i -> func(i);
-            
-            // let i = Int32.mod(rand, size);
-            // let r = i -> Vector.get(i, List.toVector(xs));
-            let retfunc : Gen[a] = Gen.Gen(rand -> Vector.get(funci(rand), v));
-
-            Result.Ok(retfunc)
-            // Result.Err("Not implemented yet!")
+            Result.Ok(bind(chooseInt(0, size - 1), i -> Vector.get(i, v)))
     }
-    // if (List.isEmpty(xs)) 
-    //     Result.Err("Method oneOf called on empty list!")
-    //  else 
-    //     let size = List.length(xs);
-    //     let i = chooseInt(0, size - 1);
-    //     let r = i -> Vector.get(i, List.toVector(xs));
-    //     Result.Ok(Gen.Gen(rand -> res))
     
 
 
