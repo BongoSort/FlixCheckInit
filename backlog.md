@@ -3,13 +3,13 @@
 * Gen for flere typer: (Int64, strenge, bool, List, generiske typer?? osv)
 * Unit
 * Bool OK
-* Char
+* Char OK
 * Float32	
 * Float64	
 * Int8
 * Int16
 * Int32 OK Testet
-* Int64
+* Int64 - Samme som 32?
 * String
 * BigInt
 * BigDecimal
