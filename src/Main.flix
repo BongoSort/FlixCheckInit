@@ -24,6 +24,19 @@ pub def chooseAlphabetChar(): Gen[Char] =
         }
     )
 
+/// Generates a random string of a given size.
+pub def chooseString(size: Int32): Gen[Char] = 
+    Gen.Gen(
+        rand -> match  {
+        case None => '\u0061',
+        case Some(0) => '\u0061',
+        case Some(_) => chooseAlphabetChar()
+
+    }
+
+    )
+
+    
 pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
         rand ->
@@ -66,18 +79,24 @@ instance Arbitrary[Char] {
     pub def arbitrary(): Gen[Char] = chooseAlphabetChar()
 }
 
+instance Arbitrary[String] {
+    pub def arbitrary(): Gen[String] = chooseString()
+}
+
+
 // instance Arbitrary[(Arbitrary[Int32], Arbitrary[Bool])] {
 //     pub def arbitrary(): Gen[(a, b)] = (Arbitrary[a], Arbitrary[b])
 // }
 
 // The main entry point.
 def main(): Unit \ IO =
-    let seed = 27;
+    let seed = 25;
     let g = chooseAlphabetChar();
     let res = match g {case Gen.Gen(f) => f(seed)};
 
     println(res)
+    
 
-
-
-
+    // let rs = chooseString(6);
+    // let res2 = match rs {case Gen.Gen(f) => f(seed)};
+    // println(res2)
