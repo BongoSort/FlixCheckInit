@@ -8,6 +8,7 @@ pub enum Gen[a](Rand -> a)
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
     Gen.Gen(rand -> Int32.mod(rand, (upper + 1) - lower) + lower)
 
+/// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
     Gen.Gen(
         rand -> 
@@ -16,6 +17,7 @@ pub def chooseBool(): Gen[Bool] =
                 case _ => false
     })
 
+/// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
     Gen.Gen(
         rand -> 
@@ -25,6 +27,7 @@ pub def chooseLowerChar(): Gen[Char] =
         }
     )
 
+/// Returns a generator that uniformly generates an upper case character.
 pub def chooseUpperChar(): Gen[Char] =
     let nelOpt = List.map(x -> return(x), 
         ('A' :: 'B' :: 'C' :: 'D' :: 'E' :: 'F' :: 'G' :: 'H' :: 
@@ -38,10 +41,20 @@ pub def chooseUpperChar(): Gen[Char] =
     };
     oneOf(nel)
 
-
+/// Returns a generator that generates the value `a`.
 pub def return(a: a): Gen[a] = 
     Gen.Gen(_ -> a)
 
+
+///
+/// Binds a generator `gen` with a function `fun` to produce a new generator.
+///
+/// @param gen The generator to bind.
+///
+/// @param fun The function to apply to the generated value.
+///
+/// @return A new generator that applies `fun` to the generated value of `gen`.
+///
 pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
         rand ->
@@ -56,7 +69,7 @@ pub def liftM2(f: a -> b -> c, genA: Gen[a], genB: Gen[b]): Gen[c] =
     bind(genA, a -> bind(genB, b -> return(f(a)(b))))
 
 
-// TODO use nel instead of list
+/// TODO use nel instead of list
 pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
     let v = Nel.toVector(xs);
     let size = Vector.length(v);
