@@ -145,9 +145,22 @@ def splitSeed(seed: Int32): (Int32, Int32) =
 
     // Pad with 0s to get original length of seed
     // TODO consider the padding, maybe 1 for s11, or maybe XOR one half?
+    // TODO The first seed will always be equal :(
     let s11 = String.padRight(len/2, '0', s1);
     let s22 = String.padLeft(len/2, '0', s2);
     (parseSeed(s11), parseSeed(s22))
+
+/// Generate an additional seed from a given seed.
+///
+/// `seed` The seed to split, must be Int32.
+///
+/// Returns a tuple with the original seed and the new seed.
+def genSeedsFromSeed(seed: Int32): (Int32, Int32) =
+    let s = toBinaryString(seed);
+    let len = String.length(s);
+    let (s1, s2) = String.splitAt(len / 2, s);
+    let new_bin_seed = s2+s1;
+    (seed, parseSeed(new_bin_seed))
 
 /// Parses a seed string and returns an integer value.
 ///
@@ -170,6 +183,11 @@ def main(): Unit \ IO =
     println("seed\n${seed}");
     println("split seed s1\n${s1}");
     println("split seed s2\n${s2}");
+
+    let (s3, s4) = genSeedsFromSeed(seed);
+    println("getSeedsFromSeed s3\n${s3}");
+    println("getSeedsFromSeed s4\n${s4}");
+
 
     let g = randomPair(chooseBool(), chooseBool());
     let res = match g {case Gen.Gen(f) => f(seed)}; 
