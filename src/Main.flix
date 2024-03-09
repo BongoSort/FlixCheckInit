@@ -49,11 +49,11 @@ pub def return(a: a): Gen[a] =
 ///
 /// Binds a generator `gen` with a function `fun` to produce a new generator.
 ///
-/// Returns A new generator that applies `fun` to the generated value of `gen`.
-///
 /// `gen` The generator to bind.
 ///
 /// `fun` The function to apply to the generated value.
+///
+/// Returns A new generator that applies `fun` to the generated value of `gen`.
 ///
 pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
@@ -121,15 +121,23 @@ instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
 }
 
 
+
+///
+/// Converts an integer to its binary representation.
+///
+/// x is the integer to convert.
+///
+/// Returns the binary representation of the input integer.
+///
 def toBinaryString(x: Int32): String =
     import static java.lang.Integer.toBinaryString(Int32): ##java.lang.String \ {};
     toBinaryString(x)
 
 /// Splits a seed in two halves.
 ///
-/// Returns a tuple with the two halves of the seed.
-///
 /// `seed` The seed to split, must be Int32.
+///
+/// Returns a tuple with the two halves of the seed.
 def splitSeed(seed: Int32): (Int32, Int32) =
     let s = toBinaryString(seed);
     let len = String.length(s);
@@ -143,9 +151,9 @@ def splitSeed(seed: Int32): (Int32, Int32) =
 
 /// Parses a seed string and returns an integer value.
 ///
-/// Returns: The parsed integer value if successful.
-///
 /// `seed` The seed string to parse.
+///
+/// Returns: The parsed integer value if successful.
 ///
 /// This function will panic if the seed string cannot be parsed as an integer.
 def parseSeed(seed: String): Int32 =
