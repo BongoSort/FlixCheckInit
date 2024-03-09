@@ -49,11 +49,11 @@ pub def return(a: a): Gen[a] =
 ///
 /// Binds a generator `gen` with a function `fun` to produce a new generator.
 ///
-/// @param gen The generator to bind.
+/// Returns A new generator that applies `fun` to the generated value of `gen`.
 ///
-/// @param fun The function to apply to the generated value.
+/// `gen` The generator to bind.
 ///
-/// @return A new generator that applies `fun` to the generated value of `gen`.
+/// `fun` The function to apply to the generated value.
 ///
 pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
@@ -120,25 +120,34 @@ instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
         liftM2(func, aGen, bGen)
 }
 
+
 def toBinaryString(x: Int32): String =
     import static java.lang.Integer.toBinaryString(Int32): ##java.lang.String \ {};
     toBinaryString(x)
 
 /// Splits a seed in two halves.
 ///
-/// seed :  The seed to split, must be Int32.
-///
 /// Returns a tuple with the two halves of the seed.
+///
+/// `seed` The seed to split, must be Int32.
 def splitSeed(seed: Int32): (Int32, Int32) =
     let s = toBinaryString(seed);
     let len = String.length(s);
     let (s1, s2) = String.splitAt(len / 2, s);
-    // Pad with 0s to get original length
+
+    // Pad with 0s to get original length of seed
+    // TODO consider the padding, maybe 1 for s11, or maybe XOR one half?
     let s11 = String.padRight(len/2, '0', s1);
     let s22 = String.padLeft(len/2, '0', s2);
-
     (parseSeed(s11), parseSeed(s22))
 
+/// Parses a seed string and returns an integer value.
+///
+/// Returns: The parsed integer value if successful.
+///
+/// `seed` The seed string to parse.
+///
+/// This function will panic if the seed string cannot be parsed as an integer.
 def parseSeed(seed: String): Int32 =
     match Int32.parse(2, seed) {
         case Ok(value) => value,
@@ -148,11 +157,11 @@ def parseSeed(seed: String): Int32 =
 /// The main entry point.
 def main(): Unit \ IO =
     let seed =  Random.nextInt32(Random.new());
-    
+
     let (s1, s2) = splitSeed(seed);
     println("seed\n${seed}");
-    println("s1\n${s1}");
-    println("s2\n${s2}");
+    println("split seed s1\n${s1}");
+    println("split seed s2\n${s2}");
 
     let g = randomPair(chooseBool(), chooseBool());
     let res = match g {case Gen.Gen(f) => f(seed)}; 
