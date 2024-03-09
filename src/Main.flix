@@ -133,10 +133,9 @@ def splitSeed(seed: Int32): (Int32, Int32) =
     let s = toBinaryString(seed);
     let len = String.length(s);
     let (s1, s2) = String.splitAt(len / 2, s);
-    // TODO fix for other Seed sizes? Now it defaults to 32
-    // TODO use padleft og padright
-    let s11 = s1 + "0000000000000000";
-    let s22 = "0000000000000000" + s2;
+    // Pad with 0s to get original length
+    let s11 = String.padRight(len/2, '0', s1);
+    let s22 = String.padLeft(len/2, '0', s2);
 
     (parseSeed(s11), parseSeed(s22))
 
@@ -149,6 +148,7 @@ def parseSeed(seed: String): Int32 =
 /// The main entry point.
 def main(): Unit \ IO =
     let seed =  Random.nextInt32(Random.new());
+    
     let (s1, s2) = splitSeed(seed);
     println("seed\n${seed}");
     println("s1\n${s1}");
