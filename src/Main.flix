@@ -108,6 +108,7 @@ pub def randomPair(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
     let Gen.Gen(g) = y;
     // let (rand1, rand2) = (4, 5);
     // Split seed TODO
+
     Gen.Gen(rand -> (f(rand), g(rand)))
 
 
@@ -119,14 +120,44 @@ instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
         liftM2(func, aGen, bGen)
 }
 
+def toBinaryString(x: Int32): String =
+    import static java.lang.Integer.toBinaryString(Int32): ##java.lang.String \ {};
+    toBinaryString(x)
 
+/// Splits a seed in two halves.
+///
+/// seed :  The seed to split, must be Int32.
+///
+/// Returns a tuple with the two halves of the seed.
+def splitSeed(seed: Int32): (Int32, Int32) =
+    let s = toBinaryString(seed);
+    let len = String.length(s);
+    let (s1, s2) = String.splitAt(len / 2, s);
+    // TODO fix for other Seed sizes? Now it defaults to 32
+    // TODO use padleft og padright
+    let s11 = s1 + "0000000000000000";
+    let s22 = "0000000000000000" + s2;
 
-// The main entry point.
+    (parseSeed(s11), parseSeed(s22))
+
+def parseSeed(seed: String): Int32 =
+    match Int32.parse(2, seed) {
+        case Ok(value) => value,
+        case Err(_) => unreachable!()
+    }
+
+/// The main entry point.
 def main(): Unit \ IO =
     let seed =  Random.nextInt32(Random.new());
+    let (s1, s2) = splitSeed(seed);
+    println("seed\n${seed}");
+    println("s1\n${s1}");
+    println("s2\n${s2}");
+
     let g = randomPair(chooseBool(), chooseBool());
     let res = match g {case Gen.Gen(f) => f(seed)}; 
     println(res)
+
 
 
 
