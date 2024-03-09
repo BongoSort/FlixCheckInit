@@ -1,4 +1,4 @@
-## Backlog
+# Backlog
 
 * Gen for flere typer: (Int64, strenge, bool, List, generiske typer?? osv)
 * Unit
@@ -16,7 +16,6 @@
 * Tuples
 * Lists
 * Vector
-
 
 * Gen skal være smart! (for Int32 tjek gerne 0,1,-1, min-tal, max-tal)
 
@@ -41,8 +40,6 @@ Lav generatoren således at den spytter en liste ud med ting der kan afprøves, 
 "noget.noget.noget" er træls
 gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har testet
 
-
-
 ## Spørgsmål til Magnus
 
 Hvordan renamer man en mod?
@@ -50,10 +47,10 @@ Hvordan renamer man en mod?
 A qualified use with rename: use A.B.Color => AColor
 Men det virker ikke.
 
-
 Hvorfor kan f.eks. Arbitrary finde Gen uden at Gen specifikt er blevet brugt (use) i Arbitrary?
 
 ### Svar
+
 // fx Int= 42
 /// f: Int -> a
 // g: Int -> b
