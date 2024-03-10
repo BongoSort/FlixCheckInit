@@ -111,13 +111,25 @@ pub def randomPair(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
 
     Gen.Gen(rand -> (f(rand), g(rand)))
 
+pub def randomPairMonadic(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
+    let func = a -> b -> (a, b);
+    liftM2(func, x, y)
+
 
 instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
     pub def arbitrary(): Gen[(a, b)] =
-        let aGen: Gen[a] = Arbitrary.arbitrary();
-        let bGen: Gen[b] = Arbitrary.arbitrary();
-        let func = a -> b -> (a, b);
-        liftM2(func, aGen, bGen)
+        randomPair(Arbitrary.arbitrary(), Arbitrary.arbitrary())
+}
+
+pub def randomList(x: Gen[a]): Gen[List[a]] =
+    let Gen.Gen(f) = x;
+    let emptyListGen = Nel.singleton(return(Nil));
+    let listGen = Gen.Gen(rand -> f(rand) :: f(rand) :: Nil);
+    oneOf(Nel.cons(listGen, emptyListGen))
+
+instance Arbitrary[List[a]] with Arbitrary[a] {
+    pub def arbitrary(): Gen[List[a]] =
+        randomList(Arbitrary.arbitrary())
 }
 
 
