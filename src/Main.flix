@@ -11,7 +11,7 @@ pub def applyGen(g: Gen[a], r: Rand): a =
 
 /// Returns a Generator that uniformly generates values in the interval [lower, upper]
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
-    Gen.Gen(rand -> Int32.mod(rand, (upper + 1) - lower) + lower)
+    Gen.Gen(rand -> Int32.modulo(rand, (upper + 1) - lower) + lower)
 
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
@@ -182,8 +182,8 @@ def split(r: Rand): (Rand, Rand) =
     if (r == 0)
         split(1)
     else
-        let r1 = Int32.mod(17364 * r, 65521);
-        let r2 = Int32.mod(33285 * r, 65521);
+        let r1 = Int32.modulo(17364 * r, 65521);
+        let r2 = Int32.modulo(33285 * r, 65521);
         (r1, r2)
 
  def testNTimes(n: Int32, seed: Rand, gen: Gen[a]): Unit \ IO with Arbitrary[a], ToString[a] =
