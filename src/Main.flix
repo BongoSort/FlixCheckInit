@@ -29,17 +29,18 @@ pub def chooseLowerChar(): Gen[Char] =
 
 /// Returns a generator that uniformly generates an upper case character.
 pub def chooseUpperChar(): Gen[Char] =
-    let nelOpt = List.map(x -> return(x), 
+    let nelOpt = List.map(
+        x -> return(x), 
         ('A' :: 'B' :: 'C' :: 'D' :: 'E' :: 'F' :: 'G' :: 'H' :: 
          'I' :: 'J' :: 'K' :: 'L' :: 'M' :: 'N' :: 'O' :: 'P' :: 
          'Q' :: 'R' :: 'S' :: 'T' :: 'U' :: 'V' :: 'W' :: 'X' :: 
          'Y' :: 'Z' :: Nil));
-    let nel = 
+    let nelOfChar = 
         match List.toNel(nelOpt) {
             case Some(n) => n,
             case None => unreachable!()
     };
-    oneOf(nel)
+    oneOf(nelOfChar)
 
 /// Returns a generator that generates the value `a`.
 pub def return(a: a): Gen[a] = 
@@ -59,8 +60,7 @@ pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
         rand ->
             let Gen.Gen(aGen) = gen;
-            let result: a = aGen(rand);
-            let newGen: Gen[b]  = fun(result);
+            let newGen: Gen[b]  = fun(aGen(rand));
             let Gen.Gen(f) = newGen;
             f(rand)
     )
@@ -69,13 +69,11 @@ pub def liftM2(f: a -> b -> c, genA: Gen[a], genB: Gen[b]): Gen[c] =
     bind(genA, a -> bind(genB, b -> return(f(a)(b))))
 
 
-/// TODO use nel instead of list
 pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
     let v = Nel.toVector(xs);
     let size = Vector.length(v);
     bind(chooseInt(0, size - 1), i -> Vector.get(i, v))
     
-
 
 // Arbitrary instances
 pub trait Arbitrary[a] {
@@ -104,12 +102,12 @@ instance Arbitrary[Char] {
 // def fromList(l: ##java.util.List): List[a]
 
 pub def randomPair(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
-    let Gen.Gen(f) = x;
-    let Gen.Gen(g) = y;
-    // let (rand1, rand2) = (4, 5);
-    // Split seed TODO
-
-    Gen.Gen(rand -> (f(rand), g(rand)))
+    Gen.Gen(rand -> 
+        let Gen.Gen(f) = x;
+        let Gen.Gen(g) = y;
+        let (r1, r2) = splitSeed(rand);
+        (f(r1), g(r2))
+    )
 
 pub def randomPairMonadic(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
     let func = a -> b -> (a, b);
@@ -121,17 +119,31 @@ instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
         randomPair(Arbitrary.arbitrary(), Arbitrary.arbitrary())
 }
 
-pub def randomList(x: Gen[a]): Gen[List[a]] =
-    let Gen.Gen(f) = x;
-    let emptyListGen = Nel.singleton(return(Nil));
-    let listGen = Gen.Gen(rand -> f(rand) :: f(rand) :: Nil);
-    oneOf(Nel.cons(listGen, emptyListGen))
+    
+
+pub def randomList(gen: Gen[a]): Gen[List[a]] =
+    let Gen.Gen(f) = gen;
+    let listGen = Gen.Gen(rand ->
+        let (r1, _) = splitSeed(rand);
+        let Gen.Gen(g) = randomList(gen);
+        let xs: List[a] = g(rand);
+        List.Cons(f(r1), xs));
+    oneOf(Nel.cons(listGen, Nel.singleton(return(Nil))))
+    
+
+// pub def randomListMonadic(aGen: Gen[a]): Gen[List[a]] =
+//     let emptyListGen = Nel.singleton(return(Nil));
+//     let func : Gen[a] -> Gen[List[a]] -> Gen[List[a]] = Gen.Gen(rand -> )
+
+//     oneOf(Nel.cons(liftM2(func, aGen, randomListMonadic(aGen)), emptyListGen))
+
 
 instance Arbitrary[List[a]] with Arbitrary[a] {
     pub def arbitrary(): Gen[List[a]] =
-        randomList(Arbitrary.arbitrary())
+        let gen: Gen[a] = Arbitrary.arbitrary();
+        let emptyListGen = Nel.singleton(return(Nil));
+        oneOf(Nel.cons(liftM2(x -> xs -> x :: xs, gen, Arbitrary.arbitrary()), emptyListGen))
 }
-
 
 
 ///
@@ -150,7 +162,7 @@ def toBinaryString(x: Int32): String =
 /// `seed` The seed to split, must be Int32.
 ///
 /// Returns a tuple with the two halves of the seed.
-def splitSeed(seed: Int32): (Int32, Int32) =
+def splitSeed1(seed: Int32): (Int32, Int32) =
     let s = toBinaryString(seed);
     let len = String.length(s);
     let (s1, s2) = String.splitAt(len / 2, s);
@@ -187,25 +199,23 @@ def parseSeed(seed: String): Int32 =
         case Err(_) => unreachable!()
     }
 
+def splitSeed(r: Rand): (Rand, Rand) =
+    // let goldenGamma16 = 40503; // true 16 bit golden gamma value. Its uneven.
+    let goldenGamma = 265443576; //Removed last digit from the golden ratio number. Even.
+    let r1 = r + goldenGamma;
+    let r2 = r1 + goldenGamma;
+    (r1, r2)
+
+ def gogo(n: Int32): Unit \ IO =
+    let gen : Gen[Int32] = Arbitrary.arbitrary();
+    let Gen.Gen(f) = gen;
+    println((f(n * 40503)));
+    if (n > 0) gogo(n - 1) else println("done")
+
 /// The main entry point.
 def main(): Unit \ IO =
-    let seed =  Random.nextInt32(Random.new());
-
-    let (s1, s2) = splitSeed(seed);
-    println("seed\n${seed}");
-    println("split seed s1\n${s1}");
-    println("split seed s2\n${s2}");
-
-    let (s3, s4) = genSeedsFromSeed(seed);
-    println("getSeedsFromSeed s3\n${s3}");
-    println("getSeedsFromSeed s4\n${s4}");
-
-
-    let g = randomPair(chooseBool(), chooseBool());
-    let res = match g {case Gen.Gen(f) => f(seed)}; 
-    println(res)
-
-
-
-
-
+    
+    let gen : Gen[Int32] = Arbitrary.arbitrary();
+    let rl = randomList(gen);
+    let Gen.Gen(f) = rl;
+    println(f(2))
