@@ -1,8 +1,13 @@
-use Random.Random
 
 pub type alias Rand = Int32
 
 pub enum Gen[a](Rand -> a)
+
+pub def applyGen(g: Gen[a], r: Rand): a =
+    match g {
+        case Gen.Gen(f) => f(r)
+    }
+
 
 /// Returns a Generator that uniformly generates values in the interval [lower, upper]
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
@@ -10,37 +15,25 @@ pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] =
 
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
-    Gen.Gen(
-        rand -> 
-            match Int32.mod(rand, 2) {
-                case 0 => true,
-                case _ => false
-    })
+    oneOf(Nel.Nel(return(true), return(false) :: Nil))
 
 /// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
-    Gen.Gen(
-        rand -> 
-            match Char.forDigit(radix = 36, Int32.mod(rand, 26) + 10) {
-                case Some(d) => d,
-                case None => unreachable!()
-        }
-    )
+    let nelOfChar: Nel[Char] = Nel.Nel('a', 
+    'b' :: 'c' :: 'd' :: 'e' :: 'f' :: 'g' :: 'h' :: 
+    'i' :: 'j' :: 'k' :: 'l' :: 'm' :: 'n' :: 'o' :: 
+    'p' :: 'q' :: 'r' :: 's' :: 't' :: 'u' :: 'v' :: 
+    'w' :: 'x' :: 'y' :: 'z' :: Nil);
+    oneOf(Nel.map(x -> return(x), nelOfChar))
 
 /// Returns a generator that uniformly generates an upper case character.
 pub def chooseUpperChar(): Gen[Char] =
-    let nelOpt = List.map(
-        x -> return(x), 
-        ('A' :: 'B' :: 'C' :: 'D' :: 'E' :: 'F' :: 'G' :: 'H' :: 
-         'I' :: 'J' :: 'K' :: 'L' :: 'M' :: 'N' :: 'O' :: 'P' :: 
-         'Q' :: 'R' :: 'S' :: 'T' :: 'U' :: 'V' :: 'W' :: 'X' :: 
-         'Y' :: 'Z' :: Nil));
-    let nelOfChar = 
-        match List.toNel(nelOpt) {
-            case Some(n) => n,
-            case None => unreachable!()
-    };
-    oneOf(nelOfChar)
+    let nelOfChar: Nel[Char] = Nel.Nel('A', 
+    'B' :: 'C' :: 'D' :: 'E' :: 'F' :: 'G' :: 'H' ::
+    'I' :: 'J' :: 'K' :: 'L' :: 'M' :: 'N' :: 'O' ::
+    'P' :: 'Q' :: 'R' :: 'S' :: 'T' :: 'U' :: 'V' ::
+    'W' :: 'X' :: 'Y' :: 'Z' :: Nil);
+    oneOf(Nel.map(x -> return(x), nelOfChar))
 
 /// Returns a generator that generates the value `a`.
 pub def return(a: a): Gen[a] = 
@@ -56,17 +49,15 @@ pub def return(a: a): Gen[a] =
 ///
 /// Returns A new generator that applies `fun` to the generated value of `gen`.
 ///
-pub def bind(gen: Gen[a], fun: a -> Gen[b]): Gen[b] =
+pub def bind(aGen: Gen[a], fun: a -> Gen[b]): Gen[b] =
     Gen.Gen(
         rand ->
-            let Gen.Gen(aGen) = gen;
-            let newGen: Gen[b]  = fun(aGen(rand));
-            let Gen.Gen(f) = newGen;
-            f(rand)
+            let newGen: Gen[b] = fun(applyGen(aGen, rand));
+            applyGen(newGen, rand)
     )
 
-pub def liftM2(f: a -> b -> c, genA: Gen[a], genB: Gen[b]): Gen[c] =
-    bind(genA, a -> bind(genB, b -> return(f(a)(b))))
+pub def liftM2(f: a -> b -> c, aGen: Gen[a], bGen: Gen[b]): Gen[c] =
+    bind(aGen, a -> bind(bGen, b -> return(f(a, b))))
 
 
 pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
@@ -80,12 +71,10 @@ pub trait Arbitrary[a] {
     pub def arbitrary(): Gen[a]
 }
 
-
 instance Arbitrary[Int32] {
     pub def arbitrary(): Gen[Int32] =
-        chooseInt(-20, 20)
+        chooseInt(-10, 10)
 }
-
 
 instance Arbitrary[Bool] {
     pub def arbitrary(): Gen[Bool] =
@@ -97,16 +86,10 @@ instance Arbitrary[Char] {
         chooseLowerChar()
 }
 
-// def intToBinString(x: ##java.integer)
-// def intToBinString(x: ##java.integer)
-// def fromList(l: ##java.util.List): List[a]
-
-pub def randomPair(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
+pub def randomPair(aGen: Gen[a], bGen: Gen[b]): Gen[(a, b)] =
     Gen.Gen(rand -> 
-        let Gen.Gen(f) = x;
-        let Gen.Gen(g) = y;
         let (r1, r2) = splitSeed(rand);
-        (f(r1), g(r2))
+        (applyGen(aGen, r1), applyGen(bGen, r2))
     )
 
 pub def randomPairMonadic(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
@@ -120,29 +103,17 @@ instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
 }
 
     
-
-pub def randomList(gen: Gen[a]): Gen[List[a]] =
-    let Gen.Gen(f) = gen;
-    let listGen = Gen.Gen(rand ->
-        let (r1, _) = splitSeed(rand);
-        let Gen.Gen(g) = randomList(gen);
-        let xs: List[a] = g(rand);
-        List.Cons(f(r1), xs));
-    oneOf(Nel.cons(listGen, Nel.singleton(return(Nil))))
-    
-
-// pub def randomListMonadic(aGen: Gen[a]): Gen[List[a]] =
-//     let emptyListGen = Nel.singleton(return(Nil));
-//     let func : Gen[a] -> Gen[List[a]] -> Gen[List[a]] = Gen.Gen(rand -> )
-//     oneOf(Nel.cons(liftM2(func, aGen, randomListMonadic(aGen)), emptyListGen))
+pub def randomList(aGen: Gen[a], r: Rand): List[a] =
+    let (r1, r2) = split(r);
+    match applyGen(chooseBool(), r2) {
+        case true => applyGen(aGen, r1) :: randomList(aGen, r2),
+        case false => Nil
+    }
 
 
 instance Arbitrary[List[a]] with Arbitrary[a] {
     pub def arbitrary(): Gen[List[a]] =
-        let gen: Gen[a] = Arbitrary.arbitrary();
-        let emptyListGen = Nel.singleton(return(Nil));
-        let a: Gen[List[a]] = Arbitrary.arbitrary();
-        oneOf(Nel.cons(liftM2(x -> xs -> x :: xs, gen, a), emptyListGen))
+        Gen.Gen(rand -> randomList(Arbitrary.arbitrary(), rand))
 }
 
 
@@ -206,15 +177,27 @@ def splitSeed(r: Rand): (Rand, Rand) =
     let r2 = r1 + goldenGamma;
     (r1, r2)
 
- def gogo(n: Int32): Unit \ IO =
-    let gen : Gen[Int32] = Arbitrary.arbitrary();
-    let Gen.Gen(f) = gen;
-    println((f(n * 40503)));
-    if (n > 0) gogo(n - 1) else println("done")
+/// Splitting a random value using Linear Congruential Generator.
+def split(r: Rand): (Rand, Rand) =
+    if (r == 0)
+        split(1)
+    else
+        let r1 = Int32.mod(17364 * r, 65521);
+        let r2 = Int32.mod(33285 * r, 65521);
+        (r1, r2)
+
+ def testNTimes(n: Int32, seed: Rand, gen: Gen[a]): Unit \ IO with Arbitrary[a], ToString[a] =
+    match n {
+        case 0 => 
+            println("Test finished!")
+        case _ => 
+            let (r1, r2) = split(seed);
+            println(applyGen(gen, r1));
+            testNTimes(n - 1, r2, gen)
+    }
 
 /// The main entry point.
 def main(): Unit \ IO =
-    
-    let gen : Gen[List[Int32]] = Arbitrary.arbitrary();
-    let Gen.Gen(f) = gen;
-    println(f(2))
+    // let gen: Gen[(List[Int32])] = Arbitrary.arbitrary();
+    let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
+    testNTimes(10, 7, gen)
