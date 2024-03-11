@@ -6,13 +6,13 @@ pub enum Gen[a](Rand -> a)
 
 /// Returns a Generator that uniformly generates values in the interval [lower, upper]
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
-    Gen.Gen(rand -> Int32.mod(rand, (upper + 1) - lower) + lower)
+    Gen.Gen(rand -> Int32.modulo(rand, (upper + 1) - lower) + lower)
 
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
     Gen.Gen(
         rand -> 
-            match Int32.mod(rand, 2) {
+            match Int32.modulo(rand, 2) {
                 case 0 => true,
                 case _ => false
     })
@@ -21,7 +21,7 @@ pub def chooseBool(): Gen[Bool] =
 pub def chooseLowerChar(): Gen[Char] =
     Gen.Gen(
         rand -> 
-            match Char.forDigit(radix = 36, Int32.mod(rand, 26) + 10) {
+            match Char.forDigit(radix = 36, Int32.modulo(rand, 26) + 10) {
                 case Some(d) => d,
                 case None => unreachable!()
         }
@@ -189,7 +189,7 @@ def parseSeed(seed: String): Int32 =
 
 /// The main entry point.
 def main(): Unit \ IO =
-    let seed =  Random.nextInt32(Random.new());
+    let seed =  Random.nextInt32(Random.fresh());
 
     let (s1, s2) = splitSeed(seed);
     println("seed\n${seed}");
