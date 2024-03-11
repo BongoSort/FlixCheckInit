@@ -134,7 +134,6 @@ pub def randomList(gen: Gen[a]): Gen[List[a]] =
 // pub def randomListMonadic(aGen: Gen[a]): Gen[List[a]] =
 //     let emptyListGen = Nel.singleton(return(Nil));
 //     let func : Gen[a] -> Gen[List[a]] -> Gen[List[a]] = Gen.Gen(rand -> )
-
 //     oneOf(Nel.cons(liftM2(func, aGen, randomListMonadic(aGen)), emptyListGen))
 
 
@@ -142,7 +141,8 @@ instance Arbitrary[List[a]] with Arbitrary[a] {
     pub def arbitrary(): Gen[List[a]] =
         let gen: Gen[a] = Arbitrary.arbitrary();
         let emptyListGen = Nel.singleton(return(Nil));
-        oneOf(Nel.cons(liftM2(x -> xs -> x :: xs, gen, Arbitrary.arbitrary()), emptyListGen))
+        let a: Gen[List[a]] = Arbitrary.arbitrary();
+        oneOf(Nel.cons(liftM2(x -> xs -> x :: xs, gen, a), emptyListGen))
 }
 
 
@@ -215,7 +215,6 @@ def splitSeed(r: Rand): (Rand, Rand) =
 /// The main entry point.
 def main(): Unit \ IO =
     
-    let gen : Gen[Int32] = Arbitrary.arbitrary();
-    let rl = randomList(gen);
-    let Gen.Gen(f) = rl;
+    let gen : Gen[List[Int32]] = Arbitrary.arbitrary();
+    let Gen.Gen(f) = gen;
     println(f(2))
