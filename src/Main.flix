@@ -1,8 +1,16 @@
-
 pub type alias Rand = Int32
 
 pub enum Gen[a](Rand -> a)
 
+///
+/// Applies a generator `g` to a random number `r` and returns the generated value.
+///
+/// `g` the generator to apply.
+///
+/// `r` the random number.
+///
+/// returns the generated value.
+///
 pub def applyGen(g: Gen[a], r: Rand): a =
     match g {
         case Gen.Gen(f) => f(r)
@@ -13,27 +21,61 @@ pub def applyGen(g: Gen[a], r: Rand): a =
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
     Gen.Gen(rand -> Int32.modulo(rand, (upper + 1) - lower) + lower)
 
+pub def chooseIntNew(lower: Int32, upper: Int32): Gen[Int32] = 
+    ???
+
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
-    oneOf(Nel.Nel(return(true), return(false) :: Nil))
+    // oneOf(Nel.Nel(return(true), return(false) :: Nil))
+    elements(Nel.Nel(true, false :: Nil))
+
+
+pub def chooseArbitrary(lower: a, upper: a): Gen[a] =
+    ???
+
+    
+pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float64] =
+    Gen.Gen(rand -> 
+        let (r1, rsplit) = splitRand(rand);
+        let (r2, r3) = splitRand(rsplit);
+        let intGen = chooseInt(lower, upper - 1);
+        
+        let fracGen = chooseInt(0, Int32.maxValue() - 1000000); // very semi random number
+        // debug("r2: ${r2}");
+        // debug("fracGen:  ${applyGen(fracGen, r2)}");
+        // debug(Int32.maxValue());
+        debug("Int32.toFloat64(applyGen(intGen, r1)): ${Int32.toFloat64(applyGen(intGen, r1))}");
+        debug("(Int32.toFloat64(applyGen(fracGen, r2)): ${Int32.toFloat64(applyGen(fracGen, r2))}");
+        debug("((Int32.toFloat64(Int32.abs(applyGen(fracGen, r3)) + 1)): ${(Int32.toFloat64(Int32.abs(applyGen(fracGen, r3)) + 1))}");
+        
+        // fraction a b c = fromInteger a + (fromInteger b / (abs (fromInteger c) + 1))
+        // TODO FIX
+        let a = Int32.toFloat64(applyGen(intGen, r1));
+        let b = (Int32.toFloat64(applyGen(fracGen, r2)));
+        let c = (Int32.toFloat64(applyGen(fracGen, r3) + 1));
+    
+        
+        let res = a + b / Float64.abs(c) ;
+        res
+    )
 
 /// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
-    let nelOfChar: Nel[Char] = Nel.Nel('a', 
+    elements(Nel.Nel('a', 
     'b' :: 'c' :: 'd' :: 'e' :: 'f' :: 'g' :: 'h' :: 
     'i' :: 'j' :: 'k' :: 'l' :: 'm' :: 'n' :: 'o' :: 
     'p' :: 'q' :: 'r' :: 's' :: 't' :: 'u' :: 'v' :: 
-    'w' :: 'x' :: 'y' :: 'z' :: Nil);
-    oneOf(Nel.map(x -> return(x), nelOfChar))
+    'w' :: 'x' :: 'y' :: 'z' :: Nil))
 
 /// Returns a generator that uniformly generates an upper case character.
 pub def chooseUpperChar(): Gen[Char] =
-    let nelOfChar: Nel[Char] = Nel.Nel('A', 
+    elements(Nel.Nel('A', 
     'B' :: 'C' :: 'D' :: 'E' :: 'F' :: 'G' :: 'H' ::
     'I' :: 'J' :: 'K' :: 'L' :: 'M' :: 'N' :: 'O' ::
     'P' :: 'Q' :: 'R' :: 'S' :: 'T' :: 'U' :: 'V' ::
-    'W' :: 'X' :: 'Y' :: 'Z' :: Nil);
-    oneOf(Nel.map(x -> return(x), nelOfChar))
+    'W' :: 'X' :: 'Y' :: 'Z' :: Nil))
+
+    
 
 /// Returns a generator that generates the value `a`.
 pub def return(a: a): Gen[a] = 
@@ -60,15 +102,26 @@ pub def liftM2(f: a -> b -> c, aGen: Gen[a], bGen: Gen[b]): Gen[c] =
     bind(aGen, a -> bind(bGen, b -> return(f(a, b))))
 
 
+pub def elements(xs: Nel[a]): Gen[a] =
+    let v = Nel.toVector(xs);
+    let size = Vector.length(v);
+    Gen.Gen(rand -> Vector.get(applyGen(chooseInt(0, size - 1), rand), v))
+
 pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
     let v = Nel.toVector(xs);
     let size = Vector.length(v);
-    bind(chooseInt(0, size - 1), i -> Vector.get(i, v))
+    Gen.Gen(rand -> applyGen(Vector.get(applyGen(chooseInt(0, size - 1), rand), v), rand))
+    // bind(chooseInt(0, size - 1), i -> Vector.get(i, v))
     
 
 // Arbitrary instances
 pub trait Arbitrary[a] {
     pub def arbitrary(): Gen[a]
+}
+
+instance Arbitrary[Unit] {
+    pub def arbitrary(): Gen[Unit] =
+        return()
 }
 
 instance Arbitrary[Int32] {
@@ -86,35 +139,33 @@ instance Arbitrary[Char] {
         chooseLowerChar()
 }
 
-pub def randomPair(aGen: Gen[a], bGen: Gen[b]): Gen[(a, b)] =
-    Gen.Gen(rand -> 
-        let (r1, r2) = splitSeed(rand);
-        (applyGen(aGen, r1), applyGen(bGen, r2))
-    )
-
-pub def randomPairMonadic(x: Gen[a], y: Gen[b]): Gen[(a, b)] =
-    let func = a -> b -> (a, b);
-    liftM2(func, x, y)
-
+instance Arbitrary[Float64] {
+    pub def arbitrary(): Gen[Float64] = 
+        chooseFloat(0, 1)
+}
 
 instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
     pub def arbitrary(): Gen[(a, b)] =
         randomPair(Arbitrary.arbitrary(), Arbitrary.arbitrary())
 }
 
-    
-pub def randomList(aGen: Gen[a], r: Rand): List[a] =
-    let (r1, r2) = split(r);
-    match applyGen(chooseBool(), r2) {
-        case true => applyGen(aGen, r1) :: randomList(aGen, r2),
-        case false => Nil
-    }
-
-
 instance Arbitrary[List[a]] with Arbitrary[a] {
     pub def arbitrary(): Gen[List[a]] =
         Gen.Gen(rand -> randomList(Arbitrary.arbitrary(), rand))
 }
+
+pub def randomPair(aGen: Gen[a], bGen: Gen[b]): Gen[(a, b)] =
+    Gen.Gen(rand -> 
+        let (r1, r2) = splitRand(rand);
+        (applyGen(aGen, r1), applyGen(bGen, r2))
+    )
+
+pub def randomList(aGen: Gen[a], r: Rand): List[a] =
+    let (r1, r2) = splitRand(r);
+    match applyGen(chooseBool(), r) {
+        case true => applyGen(aGen, r1) :: randomList(aGen, r2),
+        case false => Nil
+    }
 
 
 ///
@@ -178,26 +229,39 @@ def splitSeed(r: Rand): (Rand, Rand) =
     (r1, r2)
 
 /// Splitting a random value using Linear Congruential Generator.
-def split(r: Rand): (Rand, Rand) =
+def splitRand(r: Rand): (Rand, Rand) =
     if (r == 0)
-        split(1)
+        splitRand(1)
     else
         let r1 = Int32.modulo(17364 * r, 65521);
-        let r2 = Int32.modulo(33285 * r, 65521);
+        let r2 = Int32.modulo(43165 * r, 131071);
         (r1, r2)
 
- def testNTimes(n: Int32, seed: Rand, gen: Gen[a]): Unit \ IO with Arbitrary[a], ToString[a] =
+
+def testNTimes(n: Int32, r: Rand, gen: Gen[a]): List[a] \ IO with Arbitrary[a], ToString[a] =
     match n {
         case 0 => 
-            println("Test finished!")
+            println("Test finished!");
+            Nil
         case _ => 
-            let (r1, r2) = split(seed);
-            println(applyGen(gen, r1));
-            testNTimes(n - 1, r2, gen)
-    }
+            let (r1, r2) = splitRand(r);
+            let res = applyGen(gen, r1);
+            println(res);
+            res :: testNTimes(n - 1, r2, gen)
+}
 
 /// The main entry point.
 def main(): Unit \ IO =
     // let gen: Gen[(List[Int32])] = Arbitrary.arbitrary();
-    let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
-    testNTimes(10, 7, gen)
+    // let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
+    // let gen: Gen[(List[Int32], List[Int32])] = Arbitrary.arbitrary();
+    let gen: Gen[Float64] = Arbitrary.arbitrary();
+    let l: List[Float64] = testNTimes(10, 50011, gen);
+    println(l)
+    
+    // let intlist : List[Int32] = List.map(x -> snd(x), l);
+    // let boollist : List[Bool] = List.map(x -> fst(x), l);
+    // let sum = List.foldLeft((acc, x) -> acc + x, 0, intlist);
+    // let sum2 = List.foldLeft((acc, x) -> if (x) acc + 1 else acc - 1, 0, boollist);
+    // println(sum);
+    // println(sum2)
