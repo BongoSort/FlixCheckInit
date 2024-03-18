@@ -1,4 +1,4 @@
-pub enum GGen[a] {
+pub enum GGen[a: Type] {
     case GGen(Rand -> a)
 }
 

@@ -2,8 +2,6 @@ pub type alias Rand = Int32
 
 pub enum Gen[a](Rand -> a)
 
-pub type alias RandGen = {}
-
 ///
 /// Applies a generator `g` to a random number `r` and returns the generated value.
 ///
@@ -157,8 +155,7 @@ pub def randomListLazy(aGen: Gen[a]): Gen[List[a]] =
 pub def randomListNew(aGen: Gen[a]): Gen[List[a]] =
     Gen.Gen(rand ->
         let (r1, r2) = splitRand(rand);
-        let ff = applyGen(aGen, r1) :: applyGen(randomListNew(aGen), r2);
-        let nel: Nel[(Int32, Gen[List[a]])] = Nel.Nel((1, return(Nil)), (10, return(ff)) :: Nil);
+        let nel: Nel[(Int32, Gen[List[a]])] = Nel.Nel((1, return(Nil)), (10, return(applyGen(aGen, r1) :: applyGen(randomListNew(aGen), r2))) :: Nil);
         applyGen(frequency(nel), r1)
     )
 
@@ -203,67 +200,6 @@ instance Arbitrary[List[a]] with Arbitrary[a] {
         randomList(Arbitrary.arbitrary())
 }
 
-
-///
-/// Converts an integer to its binary representation.
-///
-/// x is the integer to convert.
-///
-/// Returns the binary representation of the input integer.
-///
-def toBinaryString(x: Int32): String =
-    import static java.lang.Integer.toBinaryString(Int32): ##java.lang.String \ {};
-    toBinaryString(x)
-
-/// Splits a seed in two halves.
-///
-/// `seed` The seed to split, must be Int32.
-///
-/// Returns a tuple with the two halves of the seed.
-def splitSeed1(seed: Int32): (Int32, Int32) =
-    let s = toBinaryString(seed);
-    let len = String.length(s);
-    let (s1, s2) = String.splitAt(len / 2, s);
-
-    // Pad with 0s to get original length of seed
-    // TODO consider the padding, maybe 1 for s11, or maybe XOR one half?
-    // TODO The first seed will always be equal :(
-    let s11 = String.padRight(len/2, '0', s1);
-    let s22 = String.padLeft(len/2, '0', s2);
-    (parseSeed(s11), parseSeed(s22))
-
-/// Generate an additional seed from a given seed.
-///
-/// `seed` The seed to split, must be Int32.
-///
-/// Returns a tuple with the original seed and the new seed.
-def genSeedsFromSeed(seed: Int32): (Int32, Int32) =
-    let s = toBinaryString(seed);
-    let len = String.length(s);
-    let (s1, s2) = String.splitAt(len / 2, s);
-    let new_bin_seed = s2+s1;
-    (seed, parseSeed(new_bin_seed))
-
-/// Parses a seed string and returns an integer value.
-///
-/// `seed` The seed string to parse.
-///
-/// Returns: The parsed integer value if successful.
-///
-/// This function will panic if the seed string cannot be parsed as an integer.
-def parseSeed(seed: String): Int32 =
-    match Int32.parse(2, seed) {
-        case Ok(value) => value,
-        case Err(_) => unreachable!()
-    }
-
-def splitSeed(r: Rand): (Rand, Rand) =
-    // let goldenGamma16 = 40503; // true 16 bit golden gamma value. Its uneven.
-    let goldenGamma = 265443576; //Removed last digit from the golden ratio number. Even.
-    let r1 = r + goldenGamma;
-    let r2 = r1 + goldenGamma;
-    (r1, r2)
-
 /// Splitting a random value using Linear Congruential Generator.
 def splitRand(r: Rand): (Rand, Rand) =
     if (r == 0)
@@ -291,17 +227,6 @@ def testNTimes(n: Int32, r: Rand, gen: Gen[a], verbose: Bool): List[a] \ IO with
 
 /// The main entry point.
 def main(): Unit \ IO =
-    
-    // let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
-    // let l: List[(Bool, Int32)] = testNTimes(2000, 70000, gen);
-    // println(l)
-    
-    // let intlist : List[Int32] = List.map(x -> snd(x), l);
-    // let boollist : List[Bool] = List.map(x -> fst(x), l);
-    // let sum = List.foldLeft((acc, x) -> acc + x, 0, intlist);
-    // let sum2 = List.foldLeft((acc, x) -> if (x) acc + 1 else acc - 1, 0, boollist);
-    // println(sum);
-    // println(sum2)
     let gen: Gen[List[Int32]] = randomListNew(chooseInt(0, 10));
     let _ = testNTimes(10, 70017, gen, true);
     println("\n")
