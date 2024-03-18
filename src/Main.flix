@@ -75,8 +75,8 @@ pub def chooseUpperChar(): Gen[Char] =
     
 
 /// Returns a generator that generates the value `a`.
-pub def return(a: a): Gen[a] = 
-    Gen.Gen(_ -> a)
+pub def return(x: a): Gen[a] = 
+    Gen.Gen(_ -> x)
 
 
 ///

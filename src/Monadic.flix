@@ -1,14 +1,25 @@
+pub enum GGen[a] {
+    case GGen(Rand -> a)
+}
 
-pub enum GGen[a](Rand -> a) 
+pub enum Bottle[a] {
+    case Something(a)
+}
 
 // instance Functor[GGen] {
-//     pub def map(f: a -> b, x: GGen[a]): GGen[b] \ ef = 
+//     pub def map(f: a -> b \ ef, x: GGen[a]): GGen[b] \ ef =
 //         GGen.GGen(rand -> 
-//             let GGen.GGen(func) = x;
-//             f(func(rand))
-//         )
-
+//             let y = applyGGen(x, rand);
+//             let res = f(y);
+//             res
+//     )
 // }
+
+pub def applyGGen(gen: GGen[a], rand: Rand): a = 
+    let GGen.GGen(f) = gen;
+    f(rand)
+
+
 
 // instance Applicative[GGen] {
 
@@ -36,4 +47,3 @@ pub enum GGen[a](Rand -> a)
 //         )
 
 // }
-
