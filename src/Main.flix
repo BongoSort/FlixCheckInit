@@ -2,6 +2,8 @@ pub type alias Rand = Int32
 
 pub enum Gen[a](Rand -> a)
 
+pub type alias RandGen = {}
+
 ///
 /// Applies a generator `g` to a random number `r` and returns the generated value.
 ///
@@ -26,12 +28,7 @@ pub def chooseIntNew(lower: Int32, upper: Int32): Gen[Int32] =
 
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
-    // oneOf(Nel.Nel(return(true), return(false) :: Nil))
     elements(Nel.Nel(true, false :: Nil))
-
-
-pub def chooseArbitrary(lower: a, upper: a): Gen[a] =
-    ???
 
     
 pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float64] =
@@ -111,8 +108,60 @@ pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
     let v = Nel.toVector(xs);
     let size = Vector.length(v);
     Gen.Gen(rand -> applyGen(Vector.get(applyGen(chooseInt(0, size - 1), rand), v), rand))
-    // bind(chooseInt(0, size - 1), i -> Vector.get(i, v))
+
+pub def frequency(xs: Nel[(Int32, Gen[a])]): Gen[a] =
+    Gen.Gen(rand ->
+        let total = Nel.foldLeft((acc, x) -> acc + fst(x), 0, xs);
+        let (r1, r2) = splitRand(rand);
+        applyGen(pick(applyGen(chooseInt(1, total), r1), Nel.toList(xs)), r2)
+    )
     
+
+pub def pick(n: Int32, xs: List[(Int32, Gen[a])]): Gen[a] =
+    match List.head(xs) {
+        case None => unreachable!(),
+        case Some((k, gen)) => 
+            if (n <= k)
+                gen
+            else
+                pick(n-k, List.drop(1, xs))
+    }
+
+/// Generates a random pair of values using two generators.
+pub def randomPair(aGen: Gen[a], bGen: Gen[b]): Gen[(a, b)] =
+    Gen.Gen(rand -> 
+        let (r1, r2) = splitRand(rand);
+        (applyGen(aGen, r1), applyGen(bGen, r2))
+    )
+    
+/// Should produce a generator of a list of values
+pub def randomList(aGen: Gen[a]): Gen[List[a]] =
+    Gen.Gen(rand ->
+        let (r1, r2) = splitRand(rand);
+        match applyGen(chooseBool(), rand) {
+            case true => applyGen(aGen, r1) :: applyGen(randomList(aGen), r2),
+            case false => Nil
+        }
+    )
+
+/// Should produce a generator that generates a list of values, evaluating lazily
+pub def randomListLazy(aGen: Gen[a]): Gen[List[a]] =
+    let cons : Gen[List[a]] = 
+    Gen.Gen(r -> 
+        let (r1, r2) = splitRand(r);
+        applyGen(aGen, r1) :: applyGen(randomListLazy(aGen), r2));
+    let ret: Gen[List[a]] = return(Nil);
+    oneOf(Nel.Nel(ret, cons :: Nil))
+
+/// Should generate a list using some frequency weights  
+pub def randomListNew(aGen: Gen[a]): Gen[List[a]] =
+    Gen.Gen(rand ->
+        let (r1, r2) = splitRand(rand);
+        let ff = applyGen(aGen, r1) :: applyGen(randomListNew(aGen), r2);
+        let nel: Nel[(Int32, Gen[List[a]])] = Nel.Nel((1, return(Nil)), (10, return(ff)) :: Nil);
+        applyGen(frequency(nel), r1)
+    )
+
 
 // Arbitrary instances
 pub trait Arbitrary[a] {
@@ -151,21 +200,8 @@ instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
 
 instance Arbitrary[List[a]] with Arbitrary[a] {
     pub def arbitrary(): Gen[List[a]] =
-        Gen.Gen(rand -> randomList(Arbitrary.arbitrary(), rand))
+        randomList(Arbitrary.arbitrary())
 }
-
-pub def randomPair(aGen: Gen[a], bGen: Gen[b]): Gen[(a, b)] =
-    Gen.Gen(rand -> 
-        let (r1, r2) = splitRand(rand);
-        (applyGen(aGen, r1), applyGen(bGen, r2))
-    )
-
-pub def randomList(aGen: Gen[a], r: Rand): List[a] =
-    let (r1, r2) = splitRand(r);
-    match applyGen(chooseBool(), r) {
-        case true => applyGen(aGen, r1) :: randomList(aGen, r2),
-        case false => Nil
-    }
 
 
 ///
@@ -238,7 +274,7 @@ def splitRand(r: Rand): (Rand, Rand) =
         (r1, r2)
 
 
-def testNTimes(n: Int32, r: Rand, gen: Gen[a]): List[a] \ IO with Arbitrary[a], ToString[a] =
+def testNTimes(n: Int32, r: Rand, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
     match n {
         case 0 => 
             println("Test finished!");
@@ -246,18 +282,19 @@ def testNTimes(n: Int32, r: Rand, gen: Gen[a]): List[a] \ IO with Arbitrary[a], 
         case _ => 
             let (r1, r2) = splitRand(r);
             let res = applyGen(gen, r1);
-            println(res);
-            res :: testNTimes(n - 1, r2, gen)
+            if (verbose) 
+                println(res)
+            else 
+                ();
+            res :: testNTimes(n - 1, r2, gen, verbose)
 }
 
 /// The main entry point.
 def main(): Unit \ IO =
-    // let gen: Gen[(List[Int32])] = Arbitrary.arbitrary();
+    
     // let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
-    // let gen: Gen[(List[Int32], List[Int32])] = Arbitrary.arbitrary();
-    let gen: Gen[Float64] = Arbitrary.arbitrary();
-    let l: List[Float64] = testNTimes(10, 50011, gen);
-    println(l)
+    // let l: List[(Bool, Int32)] = testNTimes(2000, 70000, gen);
+    // println(l)
     
     // let intlist : List[Int32] = List.map(x -> snd(x), l);
     // let boollist : List[Bool] = List.map(x -> fst(x), l);
@@ -265,3 +302,6 @@ def main(): Unit \ IO =
     // let sum2 = List.foldLeft((acc, x) -> if (x) acc + 1 else acc - 1, 0, boollist);
     // println(sum);
     // println(sum2)
+    let gen: Gen[List[Int32]] = randomListNew(chooseInt(0, 10));
+    let _ = testNTimes(10, 70017, gen, true);
+    println("\n")

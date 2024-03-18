@@ -42,12 +42,6 @@ gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har
 
 ## Spørgsmål til Magnus
 
-Hvordan renamer man en mod?
-11.2 Docs siger:
-A qualified use with rename: use A.B.Color => AColor
-Men det virker ikke.
-
-Hvorfor kan f.eks. Arbitrary finde Gen uden at Gen specifikt er blevet brugt (use) i Arbitrary?
 
 ### Svar
 
