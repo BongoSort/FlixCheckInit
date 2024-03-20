@@ -3,9 +3,20 @@ def test01(): Bool = 1 + 1 == 2
 
 def test02(): Bool = true
 
-def seedParseTest(): Bool \ IO =
-    let seed = Random.nextInt32(Random.fresh());
-    seed == parseSeed(toBinaryString(seed))
+def testNTimes(n: Int32, size:Int32, r: Rand, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
+    match n {
+        case 0 => 
+            println("Test finished!");
+            Nil
+        case _ => 
+            let (r1, r2) = splitRand(r);
+            let res = applyGen(gen, size, r1);
+            if (verbose) 
+                println(res)
+            else 
+                ();
+            res :: testNTimes(n - 1, size, r2, gen, verbose)
+}
 
 // Testing the statistical distribution of the random number generator
 // The sums should be close to 0, but for now they are not. This is a known issue.
@@ -13,18 +24,22 @@ def testListWithBoolsAndInts(): Unit \ IO =
     let seeds = List#{12345, 54321, 97531, 8642, 55555};
     foreach(seed <- seeds)
         let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
-        
-        let l: List[(Bool, Int32)] = testNTimes(2000, seed, gen, false);
+        // Number of tests
+        let ntimes = 2000;
+        // The range of the integers, from -i to i
+        let i = 5;
+        let l: List[(Bool, Int32)] = testNTimes(ntimes, i, seed, gen, false);
         
         let intlist : List[Int32] = List.map(x -> snd(x), l);
         let boollist : List[Bool] = List.map(x -> fst(x), l);
         let sumForInt = List.foldLeft((acc, x) -> acc + x, 0, intlist);
         let sumForBool = List.foldLeft((acc, x) -> if (x) acc + 1 else acc - 1, 0, boollist);
-        println(sumForInt);
-        println(sumForBool)
+        println("Total sum should be within the bounds ${ntimes * -i} to ${ntimes * i}");
+        println("Sum should be close to 0, Sum for integers: ${sumForInt}");
+        println("Sum should be close to 0, Sum for booleans: ${sumForBool}")
 
 /// testing the distribution of the random number generator, but with the new verbose printing
 def testGenIntListVerbose(): Unit \ IO =
     let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
-    let _ = testNTimes(10, 70000, gen, true);
+    let _ = testNTimes(10, 5, 70000, gen, true);
     println("Done")

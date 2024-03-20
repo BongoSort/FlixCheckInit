@@ -10,7 +10,7 @@
 * Int16
 * Int32 OK Testet
 * Int64 - Samme som 32?
-* String
+* String 
 * BigInt
 * BigDecimal
 * Tuples
@@ -34,11 +34,16 @@
 Lav bachelor paper
 Introduktion f.eks.
 
+
+
+
 ## Designovervejelser
 
 Lav generatoren således at den spytter en liste ud med ting der kan afprøves, i stedet for specifikke tal, strenge mm. (?)
 "noget.noget.noget" er træls
 gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har testet
+
+Er chooseInt et godt valg til at håndtere forskellige opgaver? F.eks som valg af specifik Int interval, men også som definition af vektorstørrelse, men så med parametrene (0, size)
 
 ## Spørgsmål til Magnus
 
