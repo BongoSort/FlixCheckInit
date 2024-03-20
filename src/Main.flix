@@ -16,8 +16,7 @@ pub def applyGen(g: Gen[a], size: Int32, r: Rand): a =
     match g {
         case Gen.Gen(f) => f(size, r)
     }
-
-
+    
 /// Returns a Generator that uniformly generates values in the interval [lower, upper]
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
     Gen.Gen(_ -> rand -> Int32.modulo(rand, (upper + 1) - lower) + lower)
@@ -27,30 +26,21 @@ pub def chooseBool(): Gen[Bool] =
     elements(Nel.Nel(true, false :: Nil))
 
     
-// pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float64] =
-//     Gen.Gen(rand -> 
-//         let (r1, rsplit) = splitRand(rand);
-//         let (r2, r3) = splitRand(rsplit);
-//         let intGen = chooseInt(lower, upper - 1);
-        
-//         let fracGen = chooseInt(0, Int32.maxValue() - 1000000); // very semi random number
-//         // debug("r2: ${r2}");
-//         // debug("fracGen:  ${applyGen(fracGen, r2)}");
-//         // debug(Int32.maxValue());
-//         debug("Int32.toFloat64(applyGen(intGen, r1)): ${Int32.toFloat64(applyGen(intGen, r1))}");
-//         debug("(Int32.toFloat64(applyGen(fracGen, r2)): ${Int32.toFloat64(applyGen(fracGen, r2))}");
-//         debug("((Int32.toFloat64(Int32.abs(applyGen(fracGen, r3)) + 1)): ${(Int32.toFloat64(Int32.abs(applyGen(fracGen, r3)) + 1))}");
-        
-//         // fraction a b c = fromInteger a + (fromInteger b / (abs (fromInteger c) + 1))
-//         // TODO FIX
-//         let a = Int32.toFloat64(applyGen(intGen, r1));
-//         let b = (Int32.toFloat64(applyGen(fracGen, r2)));
-//         let c = (Int32.toFloat64(applyGen(fracGen, r3) + 1));
-    
-        
-//         let res = a + b / Float64.abs(c) ;
-//         res
-//     )
+/// TODO: Implement a better float generator
+pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float32] =
+    Gen.Gen(size -> rand -> 
+        let (r1, r2) = splitRand(rand);
+        let (r3, _) = splitRand(r1);
+        let intGen = chooseInt(lower + 1, upper - 1);
+        let wholeNumber = applyGen(intGen, size, r2);
+
+        let quotientGen = chooseInt(Int32.minValue(), Int32.maxValue());
+        let quotient = Int32.toFloat32(applyGen(quotientGen, size, r3));
+        let fraction: Float32 = quotient/Int32.toFloat32(Int32.maxValue());
+        debug!(fraction);
+        let res = Int32.toFloat32(wholeNumber) + fraction;
+        res
+    )
 
 /// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
@@ -143,7 +133,7 @@ pub def randomTriple(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c]): Gen[(a, b, c)] =
         let (r3, r4) = splitRand(r1);
         (applyGen(aGen, size, r2), applyGen(bGen, size, r3), applyGen(cGen, size, r4))
     )
-/// Generates a random quadrouple of values using four generators.
+/// Generates a random quadrouple of values usiflix> :eval main()ng four generators.
 pub def randomQuadruple(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c], dGen: Gen[d]): Gen[(a, b, c, d)] =
     Gen.Gen(size -> rand -> 
         let (r1, r2) = splitRand(rand);
@@ -162,16 +152,23 @@ pub def randomList(aGen: Gen[a]): Gen[List[a]] =
         }
     )
 
-pub def randomListSized(aGen: Gen[a], length: Int32): Gen[List[a]] =
+
+
+/// Should generate a list with length in the interval [0, length]
+pub def randomListSized(aGen: Gen[a], maxLength: Int32): Gen[List[a]] =
     Gen.Gen(size -> rand -> 
-        let (r1, r2) = splitRand(rand);
-        if (length <= 0) 
-            Nil
-        else
-            applyGen(aGen, size, r1) :: applyGen(randomListSized(aGen, length-1), size, r2)
+        let length = applyGen(chooseInt(0, maxLength), size, rand);
+        randomListHelper(aGen, length, size, rand)
     )
 
-/// Should generate a list using average length for controlling the generated list size.
+pub def randomListHelper(aGen: Gen[a], length: Int32, size: Int32, rand: Rand): List[a] =
+    let (r1, r2) = splitRand(rand);
+    if (length <= 0) 
+        Nil
+    else
+        applyGen(aGen, size, r1) :: randomListHelper(aGen, length-1, size, r2)
+
+/// Should generate a list using average length for controlling the generated list size for a better distribution for testing
 pub def randomListSizedAvg(aGen: Gen[a], avgLength: Int32, bound: Int32): Gen[List[a]] =
     Gen.Gen(size -> rand ->
         let (r1, r2) = splitRand(rand);
@@ -210,10 +207,9 @@ instance Arbitrary[Char] {
         chooseLowerChar()
 }
 
-instance Arbitrary[Float64] {
-    pub def arbitrary(): Gen[Float64] = 
-        ???
-        // chooseFloat(0, 1)
+instance Arbitrary[Float32] {
+    pub def arbitrary(): Gen[Float32] = 
+        chooseFloat(-10, 10)
 }
 
 instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
@@ -241,8 +237,8 @@ def splitRand(r: Rand): (Rand, Rand) =
     if (r == 0)
         splitRand(1)
     else
-        let r1 = Int32.modulo(17364 * r, 65521);
-        let r2 = Int32.modulo(43165 * r, 131071);
+        let r1 = Int32.modulo(771645345 * r, 1073741789);
+        let r2 = Int32.modulo(246049789 * r, 1111111111);
         (r1, r2)
 
 
@@ -250,11 +246,17 @@ def splitRand(r: Rand): (Rand, Rand) =
 
 /// The main entry point.
 def main(): Unit \ IO =
-    let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
-    let ll = testNTimes(100, 100, 70052, gen, true);
-    let lengthsum = List.foldLeft((acc, x) -> acc + List.length(x), 0, ll);
+    // let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
+    // let ll = testNTimes(100, 6, 70077, gen, true);
+    // let lengthsum = List.foldLeft((acc, x) -> acc + List.length(x), 0, ll);
+    // println(lengthsum)
 
-    println(lengthsum)
+    // println(lengthsum)
     // let gen: Gen[Int32] = Arbitrary.arbitrary();
     // let _ = testNTimes(100, 100, 70035, gen, true);
     // println("\n")
+
+    let gen: Gen[Float32] = Arbitrary.arbitrary();
+    let ll = testNTimes(100, 10, 123456789, gen, true);
+    let sumOfPos = List.foldLeft((acc, x) -> if (x > 0.0f32) acc + 1 else acc, 0, ll);
+    println(sumOfPos)

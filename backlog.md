@@ -45,6 +45,8 @@ gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har
 
 Er chooseInt et godt valg til at håndtere forskellige opgaver? F.eks som valg af specifik Int interval, men også som definition af vektorstørrelse, men så med parametrene (0, size)
 
+chooseInt bruger modulo, hvilket ikke rigtigt kan håndtere meget store tal. Skal vi i stedet importere noget smart mht Randomm eller evt bruge remainder i stedet?
+
 ## Spørgsmål til Magnus
 
 

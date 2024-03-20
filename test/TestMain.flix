@@ -21,7 +21,7 @@ def testNTimes(n: Int32, size:Int32, r: Rand, gen: Gen[a], verbose: Bool): List[
 // Testing the statistical distribution of the random number generator
 // The sums should be close to 0, but for now they are not. This is a known issue.
 def testListWithBoolsAndInts(): Unit \ IO =
-    let seeds = List#{12345, 54321, 97531, 8642, 55555};
+    let seeds = List#{1234567891, 543212345, 975312468, 864213579, 555555555};
     foreach(seed <- seeds)
         let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
         // Number of tests
@@ -35,11 +35,11 @@ def testListWithBoolsAndInts(): Unit \ IO =
         let sumForInt = List.foldLeft((acc, x) -> acc + x, 0, intlist);
         let sumForBool = List.foldLeft((acc, x) -> if (x) acc + 1 else acc - 1, 0, boollist);
         println("Total sum should be within the bounds ${ntimes * -i} to ${ntimes * i}");
-        println("Sum should be close to 0, Sum for integers: ${sumForInt}");
-        println("Sum should be close to 0, Sum for booleans: ${sumForBool}")
+        println("Expected sum is 0, Sum for integers: ${sumForInt}");
+        println("Expected sum is 0, Sum for booleans: ${sumForBool}")
 
 /// testing the distribution of the random number generator, but with the new verbose printing
 def testGenIntListVerbose(): Unit \ IO =
     let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
-    let _ = testNTimes(10, 5, 70000, gen, true);
+    let _ = testNTimes(10, 5, 70001, gen, true);
     println("Done")
