@@ -48,7 +48,16 @@ Er chooseInt et godt valg til at håndtere forskellige opgaver? F.eks som valg a
 chooseInt bruger modulo, hvilket ikke rigtigt kan håndtere meget store tal. Skal vi i stedet importere noget smart mht Randomm eller evt bruge remainder i stedet?
 
 ## Spørgsmål til Magnus
+lazy bind
+monadic
 
+overordnet plan
+
+Split random generator (pure)
+modulo
+næste uge
+
+(fraction)
 
 ### Svar
 

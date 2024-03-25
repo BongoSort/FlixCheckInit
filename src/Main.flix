@@ -59,10 +59,13 @@ pub def chooseUpperChar(): Gen[Char] =
     'W' :: 'X' :: 'Y' :: 'Z' :: Nil))
 
     
-
 /// Returns a generator that generates the value `a`.
 pub def return(x: a): Gen[a] = 
     Gen.Gen(_ -> _ -> x)
+
+/// Returns a generator that generates the seed value.
+pub def rand(): Gen[Rand] =
+    Gen.Gen(_ -> r -> r)
 
 
 ///
@@ -152,8 +155,6 @@ pub def randomList(aGen: Gen[a]): Gen[List[a]] =
         }
     )
 
-
-
 /// Should generate a list with length in the interval [0, length]
 pub def randomListSized(aGen: Gen[a], maxLength: Int32): Gen[List[a]] =
     Gen.Gen(size -> rand -> 
@@ -181,6 +182,57 @@ pub def randomListSizedAvg(aGen: Gen[a], avgLength: Int32, bound: Int32): Gen[Li
             }
     )
 
+pub def randomNelSized(aGen: Gen[a], maxLength: Int32): Gen[Nel[a]] =
+    Gen.Gen(size -> rand ->
+        let (r1, r2) = splitRand(rand);
+        let listGen = randomListSized(aGen, maxLength - 1);
+        let aList = applyGen(listGen, size, r1);
+        Nel.Nel(applyGen(aGen, size, r2), aList)
+    )
+
+pub def randomChainSized(aGen: Gen[a], maxLength: Int32): Gen[Chain[a]] =
+    Gen.Gen(size -> rand -> 
+        let listGen = randomListSized(aGen, maxLength);
+        let l = applyGen(listGen, size, rand);
+        List.toChain(l)
+    )
+
+pub def randomNecSized(aGen: Gen[a], maxLength: Int32): Gen[Nec[a]] =
+    Gen.Gen(size -> rand -> 
+        let (r1, r2) = splitRand(rand);
+        let listGen = randomListSized(aGen, maxLength - 1);
+        let aList = applyGen(listGen, size, r1);
+        let necHead = Nec.NecOne(applyGen(aGen, size, r2));
+        match List.toNec(aList) {
+            case None => necHead,
+            case Some(necTail) => Nec.Nec(necHead, necTail)
+        }
+    )
+
+pub def randomVectorSized(aGen: Gen[a], maxLength: Int32): Gen[Vector[a]] =
+    Gen.Gen(size -> rand ->
+        let listGen = randomListSized(aGen, maxLength);
+        let aList = applyGen(listGen, size, rand);
+        List.toVector(aList)
+    )
+
+pub def optionGenerator(aGen: Gen[a]): Gen[Option[a]] =
+    Gen.Gen(size -> rand ->
+        let (r1, r2) = splitRand(rand);
+        match applyGen(chooseBool(), size, r1) {
+            case true => Some(applyGen(aGen, size, r2)),
+            case false => None
+        }
+    )
+
+pub def resultGenerator(eGen: Gen[e], tGen: Gen[t]): Gen[Result[e, t]] =
+    Gen.Gen(size -> rand ->
+        let (r1, r2) = splitRand(rand);
+        match applyGen(chooseBool(), size, r1) {
+            case true => Ok(applyGen(tGen, size, r2)),
+            case false => Err(applyGen(eGen, size, r2))
+        }
+    )
 
 // Arbitrary instances
 pub trait Arbitrary[a] {
@@ -209,7 +261,7 @@ instance Arbitrary[Char] {
 
 instance Arbitrary[Float32] {
     pub def arbitrary(): Gen[Float32] = 
-        chooseFloat(-10, 10)
+        sized(size -> chooseFloat(-size, size))
 }
 
 instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
@@ -232,13 +284,45 @@ instance Arbitrary[List[a]] with Arbitrary[a] {
         sized(size -> randomListSized(Arbitrary.arbitrary(), size))
 }
 
+instance Arbitrary[Nel[a]] with Arbitrary[a] {
+    pub def arbitrary(): Gen[Nel[a]] =
+        sized(size -> randomNelSized(Arbitrary.arbitrary(), size))
+}
+
+instance Arbitrary[Chain[a]] with Arbitrary[a] {
+    pub def arbitrary(): Gen[Chain[a]] =
+        sized(size -> randomChainSized(Arbitrary.arbitrary(), size))
+}
+
+instance Arbitrary[Nec[a]] with Arbitrary[a] {
+    pub def arbitrary(): Gen[Nec[a]] =
+        sized(size -> randomNecSized(Arbitrary.arbitrary(), size))
+}
+
+instance Arbitrary[Vector[a]] with Arbitrary[a] {
+    pub def arbitrary(): Gen[Vector[a]] =
+        ???
+}
+
+instance Arbitrary[Option[a]] with Arbitrary[a] {
+    pub def arbitrary(): Gen[Option[a]] = 
+        optionGenerator(Arbitrary.arbitrary())
+}
+
+instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
+    pub def arbitrary(): Gen[Result[e, t]] =
+        resultGenerator(Arbitrary.arbitrary(), Arbitrary.arbitrary())
+}
+
+
+
 /// Splitting a random value using Linear Congruential Generator.
 def splitRand(r: Rand): (Rand, Rand) =
     if (r == 0)
         splitRand(1)
     else
         let r1 = Int32.modulo(771645345 * r, 1073741789);
-        let r2 = Int32.modulo(246049789 * r, 1111111111);
+        let r2 = Int32.modulo(784588716 * r, 2147483647);
         (r1, r2)
 
 
@@ -256,7 +340,8 @@ def main(): Unit \ IO =
     // let _ = testNTimes(100, 100, 70035, gen, true);
     // println("\n")
 
-    let gen: Gen[Float32] = Arbitrary.arbitrary();
-    let ll = testNTimes(100, 10, 123456789, gen, true);
-    let sumOfPos = List.foldLeft((acc, x) -> if (x > 0.0f32) acc + 1 else acc, 0, ll);
-    println(sumOfPos)
+    // let gen: Gen[Float32] = Arbitrary.arbitrary();
+    // let ll = testNTimes(100, 10, 123456789, gen, true);
+    // let sumOfPos = List.foldLeft((acc, x) -> if (x > 0.0f32) acc + 1 else acc, 0, ll);
+    // println(sumOfPos)
+    println(Int32.modulo(10, Int32.maxValue()))
