@@ -301,7 +301,7 @@ instance Arbitrary[Nec[a]] with Arbitrary[a] {
 
 instance Arbitrary[Vector[a]] with Arbitrary[a] {
     pub def arbitrary(): Gen[Vector[a]] =
-        ???
+        sized(size -> randomVectorSized(Arbitrary.arbitrary(), size))
 }
 
 instance Arbitrary[Option[a]] with Arbitrary[a] {
