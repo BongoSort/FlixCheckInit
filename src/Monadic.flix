@@ -1,13 +1,17 @@
 pub enum GGen[a: Type] {
-    case GGen(Rand -> a)
+    case GGen(Rand -> a \ IO)
 }
 
-// instance Functor[GGen] {
-//     pub def map(f: a -> b \ ef, gen: GGen[a]): GGen[b] \ ef =
-//         match gen {
-//             case GGen.GGen(func) => GGen.GGen(rand -> f(func(rand)))
-//         }
-// }
+instance Functor[GGen] {
+    pub def map(f: a -> b \ ef, gen: GGen[a]): GGen[b] \ ef =
+        match gen {
+            case GGen.GGen(func) => checked_ecast(GGen.GGen(rand -> unchecked_cast(f(func(rand)) as _ \ IO)))
+        }
+}
+
+pub def main2(): Unit \ IO = 
+    
+    println("Hello World!")
 
 // pub def applyGGen(gen: GGen[a], rand: Rand): a = 
 //     let GGen.GGen(func) = gen;

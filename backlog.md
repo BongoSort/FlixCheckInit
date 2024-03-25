@@ -49,7 +49,7 @@ chooseInt bruger modulo, hvilket ikke rigtigt kan håndtere meget store tal. Ska
 
 ## Spørgsmål til Magnus
 lazy bind
-monadic
+monadic effectful
 
 overordnet plan
 
@@ -57,7 +57,7 @@ Split random generator (pure)
 modulo
 næste uge
 
-(fraction)
+(fraction implementer korrekt)
 
 ### Svar
 

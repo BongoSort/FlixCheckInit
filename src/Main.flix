@@ -158,8 +158,9 @@ pub def randomList(aGen: Gen[a]): Gen[List[a]] =
 /// Should generate a list with length in the interval [0, length]
 pub def randomListSized(aGen: Gen[a], maxLength: Int32): Gen[List[a]] =
     Gen.Gen(size -> rand -> 
-        let length = applyGen(chooseInt(0, maxLength), size, rand);
-        randomListHelper(aGen, length, size, rand)
+        let (r1, r2) = splitRand(rand);
+        let length = applyGen(chooseInt(0, maxLength), size, r1);
+        randomListHelper(aGen, length, size, r2)
     )
 
 pub def randomListHelper(aGen: Gen[a], length: Int32, size: Int32, rand: Rand): List[a] =
