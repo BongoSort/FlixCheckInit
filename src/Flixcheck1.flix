@@ -1,6 +1,5 @@
 pub type alias Rand = Int32
 
-//pub enum Gen[a](Rand -> a)
 pub enum Gen[a](Int32 -> Rand -> a)
 
 ///
@@ -19,13 +18,12 @@ pub def applyGen(g: Gen[a], size: Int32, r: Rand): a =
     
 /// Returns a Generator that uniformly generates values in the interval [lower, upper]
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] = 
-    Gen.Gen(_ -> rand -> Int32.modulo(rand, (upper + 1) - lower) + lower)
+    Gen.Gen(_ -> rand -> Int32.abs(Int32.remainder(rand, (upper + 1) - lower)) + lower)
 
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
     elements(Nel.Nel(true, false :: Nil))
 
-    
 /// TODO: Implement a better float generator
 pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float32] =
     Gen.Gen(size -> rand -> 
@@ -33,11 +31,12 @@ pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float32] =
         let intGen = chooseInt(lower, upper - 1);
         let quotientGen = chooseInt(0, Int32.maxValue());
 
-        let quotient = Int32.toFloat32(applyGen(quotientGen, size, r2));
+        let quotient = Int32.toFloat32(applyGen(quotientGen, size, r1));
         let fraction: Float32 = quotient/Int32.toFloat32(Int32.maxValue());
 
-        Int32.toFloat32(applyGen(intGen, size, r1)) + fraction
+        Int32.toFloat32(applyGen(intGen, size, r2)) + fraction
     )
+
 
 /// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
@@ -46,6 +45,7 @@ pub def chooseLowerChar(): Gen[Char] =
     'i' :: 'j' :: 'k' :: 'l' :: 'm' :: 'n' :: 'o' :: 
     'p' :: 'q' :: 'r' :: 's' :: 't' :: 'u' :: 'v' :: 
     'w' :: 'x' :: 'y' :: 'z' :: Nil))
+
 
 /// Returns a generator that uniformly generates an upper case character.
 pub def chooseUpperChar(): Gen[Char] =
@@ -60,54 +60,32 @@ pub def chooseUpperChar(): Gen[Char] =
 pub def return(x: a): Gen[a] = 
     Gen.Gen(_ -> _ -> x)
 
-/// Returns a generator that generates the seed value.
-pub def rand(): Gen[Rand] =
-    Gen.Gen(_ -> r -> r)
-
-
-///
-/// Binds a generator `gen` with a function `fun` to produce a new generator.
-///
-/// `gen` The generator to bind.
-///
-/// `fun` The function to apply to the generated value.
-///
-/// Returns A new generator that applies `fun` to the generated value of `gen`.
-///
-pub def bind(aGen: Gen[a], fun: a -> Gen[b]): Gen[b] =
-    Gen.Gen(
-        size -> rand ->
-            let newGen: Gen[b] = fun(applyGen(aGen, size, rand));
-            applyGen(newGen, size, rand)
-    )
-
-/// Temporary lift monadic function with two arguments
-pub def liftM2(f: a -> b -> c, aGen: Gen[a], bGen: Gen[b]): Gen[c] =
-    bind(aGen, a -> bind(bGen, b -> return(f(a, b))))
-
 
 pub def sized(f: Int32 -> Gen[a]): Gen[a] =
-    Gen.Gen(
-        size -> rand ->
-        let gen: Gen[a] = f(size);
+    Gen.Gen(size -> rand ->
+        let gen = f(size);
         applyGen(gen, size, rand)
     )
 
-
 pub def elements(xs: Nel[a]): Gen[a] =
-    let v = Nel.toVector(xs);
-    let vsize = Vector.length(v);
-    Gen.Gen(size -> rand -> Vector.get(applyGen(chooseInt(0, vsize - 1), size, rand), v))
+    Gen.Gen(size -> rand -> 
+        let vec = Nel.toVector(xs);
+        let vecSize = Vector.length(vec);
+        Vector.get(applyGen(chooseInt(0, vecSize - 1), size, rand), vec)
+    )
 
 pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
-    let v = Nel.toVector(xs);
-    let vsize = Vector.length(v);
-    Gen.Gen(size -> rand -> applyGen(Vector.get(applyGen(chooseInt(0, vsize - 1), size, rand), v), size, rand))
+    Gen.Gen(size -> rand -> 
+        let (r1, r2) = splitRand(rand);
+        let vec = Nel.toVector(xs);
+        let vecSize = Vector.length(vec);
+        applyGen(Vector.get(applyGen(chooseInt(0, vecSize - 1), size, r1), vec), size, r2)
+    )
 
 pub def frequency(xs: Nel[(Int32, Gen[a])]): Gen[a] =
     Gen.Gen(size -> rand ->
-        let total = Nel.foldLeft((acc, x) -> acc + fst(x), 0, xs);
         let (r1, r2) = splitRand(rand);
+        let total = Nel.foldLeft((acc, x) -> acc + fst(x), 0, xs);
         applyGen(pick(applyGen(chooseInt(1, total), size, r1), Nel.toList(xs)), size, r2)
     )
     
@@ -126,6 +104,7 @@ pub def randomPair(aGen: Gen[a], bGen: Gen[b]): Gen[(a, b)] =
         let (r1, r2) = splitRand(rand);
         (applyGen(aGen, size, r1), applyGen(bGen, size, r2))
     )
+
 /// Generates a random triple of values using three generators.
 pub def randomTriple(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c]): Gen[(a, b, c)] =
     Gen.Gen(size -> rand -> 
@@ -133,6 +112,7 @@ pub def randomTriple(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c]): Gen[(a, b, c)] =
         let (r3, r4) = splitRand(r1);
         (applyGen(aGen, size, r2), applyGen(bGen, size, r3), applyGen(cGen, size, r4))
     )
+
 /// Generates a random quadrouple of values usiflix> :eval main()ng four generators.
 pub def randomQuadruple(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c], dGen: Gen[d]): Gen[(a, b, c, d)] =
     Gen.Gen(size -> rand -> 
@@ -146,8 +126,9 @@ pub def randomQuadruple(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c], dGen: Gen[d]):
 pub def randomList(aGen: Gen[a]): Gen[List[a]] =
     Gen.Gen(size -> rand ->
         let (r1, r2) = splitRand(rand);
-        match applyGen(chooseBool(), size, rand) {
-            case true => applyGen(aGen, size, r1) :: applyGen(randomList(aGen), size, r2),
+        let (r3, r4) = splitRand(r1);
+        match applyGen(chooseBool(), size, r2) {
+            case true => applyGen(aGen, size, r3) :: applyGen(randomList(aGen), size, r4),
             case false => Nil
         }
     )
@@ -160,6 +141,7 @@ pub def randomListSized(aGen: Gen[a], maxLength: Int32): Gen[List[a]] =
         randomListHelper(aGen, length, size, r2)
     )
 
+/// Helper function for generating a list with a specific length
 pub def randomListHelper(aGen: Gen[a], length: Int32, size: Int32, rand: Rand): List[a] =
     let (r1, r2) = splitRand(rand);
     if (length <= 0) 
@@ -171,15 +153,17 @@ pub def randomListHelper(aGen: Gen[a], length: Int32, size: Int32, rand: Rand): 
 pub def randomListSizedAvg(aGen: Gen[a], avgLength: Int32, bound: Int32): Gen[List[a]] =
     Gen.Gen(size -> rand ->
         let (r1, r2) = splitRand(rand);
+        let (r3, r4) = splitRand(r1);
         if (bound <= 0) 
             Nil
         else
-            match applyGen(chooseInt(0, avgLength), size, rand) {
+            match applyGen(chooseInt(0, avgLength), size, r2) {
                 case 0 => Nil,
-                case _ => applyGen(aGen, size, r1) :: applyGen(randomListSizedAvg(aGen, avgLength, bound-1), size, r2)
+                case _ => applyGen(aGen, size, r3) :: applyGen(randomListSizedAvg(aGen, avgLength, bound-1), size, r4)
             }
     )
 
+/// Should generate a non-empty list with length in the interval [1, length]
 pub def randomNelSized(aGen: Gen[a], maxLength: Int32): Gen[Nel[a]] =
     Gen.Gen(size -> rand ->
         let (r1, r2) = splitRand(rand);
@@ -188,6 +172,7 @@ pub def randomNelSized(aGen: Gen[a], maxLength: Int32): Gen[Nel[a]] =
         Nel.Nel(applyGen(aGen, size, r2), aList)
     )
 
+/// Should generate a chain with length in the interval [0, length]
 pub def randomChainSized(aGen: Gen[a], maxLength: Int32): Gen[Chain[a]] =
     Gen.Gen(size -> rand -> 
         let listGen = randomListSized(aGen, maxLength);
@@ -195,6 +180,7 @@ pub def randomChainSized(aGen: Gen[a], maxLength: Int32): Gen[Chain[a]] =
         List.toChain(l)
     )
 
+/// Should generate a non-empty chain with length in the interval [1, length]
 pub def randomNecSized(aGen: Gen[a], maxLength: Int32): Gen[Nec[a]] =
     Gen.Gen(size -> rand -> 
         let (r1, r2) = splitRand(rand);
@@ -207,6 +193,7 @@ pub def randomNecSized(aGen: Gen[a], maxLength: Int32): Gen[Nec[a]] =
         }
     )
 
+/// Should generate a vector with length in the interval [0, length]
 pub def randomVectorSized(aGen: Gen[a], maxLength: Int32): Gen[Vector[a]] =
     Gen.Gen(size -> rand ->
         let listGen = randomListSized(aGen, maxLength);
@@ -214,6 +201,7 @@ pub def randomVectorSized(aGen: Gen[a], maxLength: Int32): Gen[Vector[a]] =
         List.toVector(aList)
     )
 
+/// Should generate Some value or None with equal probability 
 pub def optionGenerator(aGen: Gen[a]): Gen[Option[a]] =
     Gen.Gen(size -> rand ->
         let (r1, r2) = splitRand(rand);
@@ -223,6 +211,7 @@ pub def optionGenerator(aGen: Gen[a]): Gen[Option[a]] =
         }
     )
 
+/// Should generate Ok value or Err value with equal probability
 pub def resultGenerator(eGen: Gen[e], tGen: Gen[t]): Gen[Result[e, t]] =
     Gen.Gen(size -> rand ->
         let (r1, r2) = splitRand(rand);
@@ -232,11 +221,12 @@ pub def resultGenerator(eGen: Gen[e], tGen: Gen[t]): Gen[Result[e, t]] =
         }
     )
 
-// Arbitrary instances
+// Arbitrary trait
 pub trait Arbitrary[a] {
     pub def arbitrary(): Gen[a]
 }
 
+// Arbitrary instances
 instance Arbitrary[Unit] {
     pub def arbitrary(): Gen[Unit] =
         return()
@@ -313,17 +303,14 @@ instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
 }
 
 
-
 /// Splitting a random value using Linear Congruential Generator.
 def splitRand(r: Rand): (Rand, Rand) =
     if (r == 0)
         splitRand(1)
     else
-        let r1 = Int32.modulo(771645345 * r, 1073741789);
-        let r2 = Int32.modulo(784588716 * r, 2147483647);
+        let r1 = Int32.remainder(520332806 * r, 536870909);
+        let r2 = Int32.remainder(246049789 * r, 268435399);
         (r1, r2)
-
-
 
 
 /// The main entry point.
@@ -333,13 +320,12 @@ def main(): Unit \ IO =
     // let lengthsum = List.foldLeft((acc, x) -> acc + List.length(x), 0, ll);
     // println(lengthsum)
 
-    // println(lengthsum)
-    // let gen: Gen[Int32] = Arbitrary.arbitrary();
-    // let _ = testNTimes(100, 100, 70035, gen, true);
-    // println("\n")
+    let gen: Gen[Int32] = Arbitrary.arbitrary();
+    let ll = testNTimes(100, 10, 43568, gen, true);
+    let sumOfInts = List.foldLeft((acc, x) -> acc + x, 0, ll);
+    println(sumOfInts)
 
     // let gen: Gen[Float32] = Arbitrary.arbitrary();
-    // let ll = testNTimes(100, 10, 123456789, gen, true);
+    // let ll = testNTimes(200, 10, 123456789, gen, true);
     // let sumOfPos = List.foldLeft((acc, x) -> if (x > 0.0f32) acc + 1 else acc, 0, ll);
     // println(sumOfPos)
-    println(Int32.modulo(10, Int32.maxValue()))
