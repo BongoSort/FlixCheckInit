@@ -30,16 +30,13 @@ pub def chooseBool(): Gen[Bool] =
 pub def chooseFloat(lower: Int32, upper: Int32): Gen[Float32] =
     Gen.Gen(size -> rand -> 
         let (r1, r2) = splitRand(rand);
-        let (r3, _) = splitRand(r1);
-        let intGen = chooseInt(lower + 1, upper - 1);
-        let wholeNumber = applyGen(intGen, size, r2);
+        let intGen = chooseInt(lower, upper - 1);
+        let quotientGen = chooseInt(0, Int32.maxValue());
 
-        let quotientGen = chooseInt(Int32.minValue(), Int32.maxValue());
-        let quotient = Int32.toFloat32(applyGen(quotientGen, size, r3));
+        let quotient = Int32.toFloat32(applyGen(quotientGen, size, r2));
         let fraction: Float32 = quotient/Int32.toFloat32(Int32.maxValue());
-        debug!(fraction);
-        let res = Int32.toFloat32(wholeNumber) + fraction;
-        res
+
+        Int32.toFloat32(applyGen(intGen, size, r1)) + fraction
     )
 
 /// Returns a generator that uniformly generates a lower case character.
