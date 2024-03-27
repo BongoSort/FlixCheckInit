@@ -1,9 +1,11 @@
+use FlixCheck1.{Arbitrary, Gen, applyGen};
+
 @Test
 def test01(): Bool = 1 + 1 == 2
 
 def test02(): Bool = true
 
-def testNTimes(n: Int32, size:Int32, r: Rand, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
+def testNTimes(n: Int32, size:Int32, r: Int32, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
     match n {
         case 0 => 
             println("Test finished!");
