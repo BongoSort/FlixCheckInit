@@ -34,7 +34,6 @@ mod Prng {
         println(Int64.toFloat64(g2.value)/Int64.toFloat64(Int64.maxValue()));
         println(Int64.toFloat64(g3.value)/Int64.toFloat64(Int64.maxValue()));
         println(Int64.toFloat64(g4.value)/Int64.toFloat64(Int64.maxValue()))
-
 }
 
 

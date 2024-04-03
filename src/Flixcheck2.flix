@@ -1,5 +1,3 @@
-
-
 mod FlixCheck2 {
     pub type alias Rand = Int32
 
@@ -124,8 +122,8 @@ mod FlixCheck2 {
 
         
     /// Returns a generator that generates a value of type `a` from the given non-empty list of generators.
-    pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
-        bind(x -> x, elements(xs))
+    pub def oneOf(gens: Nel[Gen[a]]): Gen[a] =
+        bind(x -> x, elements(gens))
 
 
     /// Returns a randomly generated value of type `a` based on the given frequencies.
