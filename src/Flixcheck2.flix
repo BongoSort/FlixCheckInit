@@ -107,10 +107,21 @@ mod FlixCheck2 {
         match gens {
             case Nil => 
                 return(Nil)
-            case x :: xs => 
-                let func = y -> fmap(z -> y :: z, sequence(xs));
-                bind(func, x)
+            case head :: tail => 
+                let func = x -> fmap(y -> x :: y, sequence(tail));
+                bind(func, head)
         }
+
+    /// Returns a generator that generates a list of length `length` with values of type `a`.
+    pub def sizedListOf(length: Int32, gen: Gen[a]): Gen[List[a]] =
+        match length {
+            case 0 => 
+                return(Nil)
+            case _ => 
+                let func = x -> fmap(y -> x :: y, sizedListOf(length - 1, gen));
+                bind(func, gen)
+        }
+
         
     /// Returns a generator that generates a value of type `a` from the given non-empty list of generators.
     pub def oneOf(xs: Nel[Gen[a]]): Gen[a] =
@@ -221,7 +232,7 @@ mod FlixCheck2 {
 
     instance Arbitrary[Char] {
         pub def arbitrary(): Gen[Char] = 
-            chooseLowerChar()
+            chooseUpperChar()
     }
 
     instance Arbitrary[Float32] {

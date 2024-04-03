@@ -5,7 +5,7 @@ def test01(): Bool = 1 + 1 == 2
 
 def test02(): Bool = true
 
-def testNTimes(n: Int32, size:Int32, r: Int32, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
+def sampleNTimes(n: Int32, size:Int32, r: Int32, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
     match n {
         case 0 => 
             println("Test finished!");
@@ -17,12 +17,12 @@ def testNTimes(n: Int32, size:Int32, r: Int32, gen: Gen[a], verbose: Bool): List
                 println(res)
             else 
                 ();
-            res :: testNTimes(n - 1, size, r2, gen, verbose)
+            res :: sampleNTimes(n - 1, size, r2, gen, verbose)
 }
 
 // Testing the statistical distribution of the random number generator
 // The sums should be close to 0, but for now they are not. This is a known issue.
-def testListWithBoolsAndInts(): Unit \ IO =
+def sampleListWithBoolsAndInts(): Unit \ IO =
     let seeds = List#{1234567891, 543212345, 975312468, 864213579, 555555555};
     foreach(seed <- seeds)
         let gen: Gen[(Bool, Int32)] = Arbitrary.arbitrary();
@@ -30,7 +30,7 @@ def testListWithBoolsAndInts(): Unit \ IO =
         let ntimes = 2000;
         // The range of the integers, from -i to i
         let i = 5;
-        let l: List[(Bool, Int32)] = testNTimes(ntimes, i, seed, gen, false);
+        let l: List[(Bool, Int32)] = sampleNTimes(ntimes, i, seed, gen, false);
         
         let intlist : List[Int32] = List.map(x -> snd(x), l);
         let boollist : List[Bool] = List.map(x -> fst(x), l);
@@ -43,5 +43,5 @@ def testListWithBoolsAndInts(): Unit \ IO =
 /// testing the distribution of the random number generator, but with the new verbose printing
 def testGenIntListVerbose(): Unit \ IO =
     let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
-    let _ = testNTimes(10, 5, 70001, gen, true);
+    let _ = sampleNTimes(10, 5, 70001, gen, true);
     println("Done")
