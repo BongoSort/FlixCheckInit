@@ -4,9 +4,9 @@ mod FlixCheck2 {
     pub enum Gen[a](Int32 -> Rand -> a)
 
     ///
-    /// Applies a generator `g` to a random number `r` and returns the generated value.
-    ///
-    /// `g` the generator to apply.
+    /// Applies a generator `gen` to a random number `r` and returns the generated value.
+    ///en
+    /// `gen` the generator to apply.
     ///
     /// `r` the random number.
     ///
@@ -14,8 +14,8 @@ mod FlixCheck2 {
     ///
     /// returns the generated value.
     ///
-    pub def applyGen(g: Gen[a], size: Int32, r: Rand): a =
-        match g {
+    pub def applyGen(gen: Gen[a], size: Int32, r: Rand): a =
+        match gen {
             case Gen.Gen(f) => f(size, r)
         }
 
@@ -31,9 +31,9 @@ mod FlixCheck2 {
     /// Takes as input size and generator of type `a`.     
     ///
     /// Returns a generator that generates a value of type `a`.
-    pub def resize(size: Int32, g: Gen[a]): Gen[a] =
+    pub def resize(size: Int32, gen: Gen[a]): Gen[a] =
         Gen.Gen(_ -> rand -> 
-            applyGen(g, size, rand)
+            applyGen(gen, size, rand)
         )
 
     /// Returns a generator that generates a random number.

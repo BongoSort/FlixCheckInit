@@ -221,26 +221,29 @@ mod Monadic {
 
     instance Arbitrary[Nec[a]] with Arbitrary[a] {
         pub def arbitrary(): Gen[Nec[a]] =
-            sized(size ->
-                let func = (x, xs) -> 
-                    match List.toNec(xs) {
-                        case None => Nec.singleton(x),
-                        case Some(tail) => Nec.append(Nec.singleton(x), tail)
-                    };
-                ???
-            )
+            let func = (x, xs) -> 
+                match List.toNec(xs) {
+                    case None => Nec.singleton(x),
+                    case Some(tail) => Nec.append(Nec.singleton(x), tail)
+            };
+            sized(size -> Applicative.map2(func, Arbitrary.arbitrary(), vector(size - 1)))
     }
 
     instance Arbitrary[Vector[a]] with Arbitrary[a] {
         pub def arbitrary(): Gen[Vector[a]] =
             sized(size -> 
-                ???
+                Functor.map(List.toVector, vector(size))
             )
     }
 
     instance Arbitrary[Option[a]] with Arbitrary[a] {
         pub def arbitrary(): Gen[Option[a]] = 
-            ???
+            let func = (bool, arb) ->
+                match bool {
+                    case true => Some(arb),
+                    case false => None
+                };
+            Applicative.map2(func, chooseBool(), Arbitrary.arbitrary())
     }
 
     instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
@@ -250,6 +253,6 @@ mod Monadic {
                     case true => Ok(tGen),
                     case false => Err(eGen)
                 };
-            ???
+            Applicative.map3(func, chooseBool(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
     }
 }
