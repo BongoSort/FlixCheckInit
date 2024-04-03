@@ -45,3 +45,7 @@ def testGenIntListVerbose(): Unit \ IO =
     let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
     let _ = sampleNTimes(10, 5, 70001, gen, true);
     println("Done")
+
+// def testting(): Unit \ IO =
+//     let l : Monadic.Gen[List[Char]] = vector(10);
+//     println(Monadic.applyGen(l, 1000, 12345678))

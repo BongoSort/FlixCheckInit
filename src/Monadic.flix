@@ -6,10 +6,9 @@ mod Monadic {
 
     pub enum Gen[a](Int32 -> Rand -> a \ IO)
 
-    // pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a = 
+    // pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a =
     //     let Gen.Gen(g) = gen;
-    //     checked_ecast(unchecked_cast(g(size, rand) as _ \ IO))
-    //     // g(size, rand)
+    //     unchecked_cast(g(size, rand) as _ \ {}) // Hvadøh, tør vi det her?
 
     instance Functor[Gen] {
         pub def map(f: a -> b \ ef, gen: Gen[a]): Gen[b] \ ef =
@@ -63,11 +62,10 @@ mod Monadic {
     pub def rand(): Gen[Rand] = 
         Gen.Gen(_ -> rand -> unchecked_cast(rand as _ \ IO))
 
-    // pub def promote(f: a -> Gen[b]): Gen[a -> b] = 
-    //     Gen.Gen(size -> rand ->
+    // pub def promote(f: a -> Gen[b]): Gen[a -> b] =
+    //     Gen.Gen(size -> rand -> 
     //         a -> let gen = f(a);
-    //         let Gen.Gen(g) = gen;
-    //         g(size, rand)
+    //         applyGen(gen, size, rand)
     //     )
     
     /// Returns a generator that generates a value of type `a` from the given non-empty list of generators.
