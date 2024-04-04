@@ -1,7 +1,6 @@
 
 
 mod FlixCheck1 {
-    
     pub type alias Rand = Int32
 
     pub enum Gen[a](Int32 -> Rand -> a)
@@ -22,8 +21,7 @@ mod FlixCheck1 {
 
     pub def sized(f: Int32 -> Gen[a]): Gen[a] =
     Gen.Gen(size -> rand ->
-        let gen = f(size);
-        applyGen(gen, size, rand)
+        applyGen(f(size), size, rand)
     )
 
     pub def resize(size: Int32, gen: Gen[a]): Gen[a] =
@@ -39,6 +37,19 @@ mod FlixCheck1 {
             a -> let gen = f(a);
             applyGen(gen, size, rand)
         )
+
+    pub def variant(v: Int32, gen: Gen[a]): Gen[a] =
+        Gen.Gen(size -> rand ->
+            let Gen.Gen(f) = gen;
+            f(size, rands(rand, Int32.abs(v) + 1))    
+        )
+
+    pub def rands(rand: Rand, v: Int32): Rand =
+        let (r1, r2) = splitRand(rand);
+        match v {
+            case 0 => r1
+            case n => rands(r2, n - 1)
+        }
 
     /// Returns a generator that generates the value `a`.
     pub def return(x: a): Gen[a] = 

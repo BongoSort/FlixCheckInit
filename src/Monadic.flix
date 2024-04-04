@@ -6,10 +6,6 @@ mod Monadic {
 
     pub enum Gen[a](Int32 -> Rand -> a \ IO)
 
-    // pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a =
-    //     let Gen.Gen(g) = gen;
-    //     unchecked_cast(g(size, rand) as _ \ {}) // Hvadøh, tør vi det her?
-
     instance Functor[Gen] {
         pub def map(f: a -> b \ ef, gen: Gen[a]): Gen[b] \ ef =
             let Gen.Gen(g) = gen;
@@ -40,12 +36,16 @@ mod Monadic {
                     func(size, r2) as _ \ IO)))
 
     }
+
+    pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a \ IO =
+        match gen {
+            case Gen.Gen(g) => g(size, rand)
+        }
     
     /// Returns a generator that generates a value of type `a` in the interval size defines.
     pub def sized(f: Int32 -> Gen[a]): Gen[a] = 
-        Gen.Gen(size -> rand -> 
-            let Gen.Gen(g) = f(size);
-            g(size, rand)
+        Gen.Gen(size -> rand ->
+            applyGen(f(size), size, rand)
         )
 
     /// Makes sure that the generator uses the specified size.
@@ -55,18 +55,11 @@ mod Monadic {
     /// Returns a generator that generates a value of type `a`.
     pub def resize(size: Int32, gen: Gen[a]): Gen[a] = 
         Gen.Gen(_ -> rand -> 
-            let Gen.Gen(g) = gen;
-            g(size, rand)
+            applyGen(gen, size, rand)
         )
 
     pub def rand(): Gen[Rand] = 
         Gen.Gen(_ -> rand -> unchecked_cast(rand as _ \ IO))
-
-    // pub def promote(f: a -> Gen[b]): Gen[a -> b] =
-    //     Gen.Gen(size -> rand -> 
-    //         a -> let gen = f(a);
-    //         applyGen(gen, size, rand)
-    //     )
     
     /// Returns a generator that generates a value of type `a` from the given non-empty list of generators.
     pub def elements(xs: Nel[a]): Gen[a] =
