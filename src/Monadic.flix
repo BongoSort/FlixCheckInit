@@ -8,33 +8,31 @@ mod Monadic {
 
     instance Functor[Gen] {
         pub def map(f: a -> b \ ef, gen: Gen[a]): Gen[b] \ ef =
-            let Gen.Gen(g) = gen;
             checked_ecast(Gen.Gen(size -> rand -> 
-                unchecked_cast(f(g(size, rand)) as _ \ IO)))
+                unchecked_cast(f(applyGen(gen, size, rand)) as _ \ IO)))
     }
 
     instance Applicative[Gen] {
         pub def ap(fGen: Gen[a -> b \ ef], aGen: Gen[a]): Gen[b] \ ef = 
             checked_ecast(Gen.Gen(size -> rand ->
                 let (r1, r2) = splitRand(rand); 
-                let Gen.Gen(g) = aGen;
-                let Gen.Gen(func) = fGen;
-                unchecked_cast(func(size, r1)(g(size, r2)) as _ \ IO)))
+                let func = applyGen(fGen, size, r1);
+                unchecked_cast(func(applyGen(aGen, size, r2)) as _ \ IO)))
     
         pub def point(x: a): Gen[a] = 
             Gen.Gen(_ -> _ -> unchecked_cast(x as _ \ IO))
-    
     }
 
     instance Monad[Gen] {
         pub def flatMap(f: a -> Gen[b] \ ef, aGen: Gen[a]): Gen[b] \ ef =             
             checked_ecast(Gen.Gen(size -> rand -> 
                 let (r1, r2) = splitRand(rand);
-                let Gen.Gen(g) = aGen;
                 unchecked_cast(
-                    let Gen.Gen(func) = f(g(size, r1));
-                    func(size, r2) as _ \ IO)))
-
+                    let Gen.Gen(func) = f(applyGen(aGen, size, r1));
+                    func(size, r2) as _ \ IO
+                )
+            )
+        )
     }
 
     pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a \ IO =
