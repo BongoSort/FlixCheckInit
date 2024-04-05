@@ -44,6 +44,8 @@
 Lav bachelor paper
 Introduktion f.eks.
 
+Læs om Shrink / Reduce
+
 
 
 

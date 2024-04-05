@@ -1,5 +1,3 @@
-
-
 mod FlixCheck1 {
     pub type alias Rand = Int32
 
