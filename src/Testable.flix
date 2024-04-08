@@ -2,7 +2,7 @@ mod Testable {
     use Monadic2.{Gen, Arbitrary, return}
     use Functor.{map}
 
-    type alias Result = {
+    pub type alias Result = {
         ok = Option[Bool], 
         stamp = List[String], 
         arguments = List[String]
@@ -34,20 +34,27 @@ mod Testable {
             result({ok = Some(b), stamp = Nil, arguments = Nil})
     }
 
-    // instance Testable[Result] {
-    //     pub def property(r: Result): Property =
-    //         ???
-    // }
+    pub enum TestableResult(Result)
+
+    instance Testable[TestableResult] {
+        pub def property(r: TestableResult): Property =
+            let TestableResult.TestableResult(res) = r;
+            result(res)
+    }
 
     instance Testable[Property] {
         pub def property(prop: Property): Property =
             prop
     }
 
-    // instance Testable[a -> b] with Arbitrary[a], ToString[a], Testable[b] {
-    //     pub def property(f: a -> b): Property =
-    //         ???
-    // }
+    // Spørg Magnus om dette
+    pub enum TestableFunc[a, b](a -> b)
+
+    instance Testable[TestableFunc[a, b]] with Arbitrary[a], ToString[a], Testable[b] {
+        pub def property(f: TestableFunc[a, b]): Property =
+            let TestableFunc.TestableFunc(func) = f;
+            forAll(Arbitrary.arbitrary(), func)
+    }
 
     pub def forAll(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
         Property.Property(
@@ -86,4 +93,5 @@ mod Testable {
 
     pub def collect(x: a): b -> Property with ToString[a], Testable[b] =
         label(ToString.toString(x))
+    
 }

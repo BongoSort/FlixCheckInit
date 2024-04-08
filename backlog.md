@@ -60,8 +60,6 @@ chooseInt bruger modulo, hvilket ikke rigtigt kan håndtere meget store tal. Ska
 
 ## Spørgsmål til Magnus
 
-Split random generator (pure)
-
-(fraction implementer korrekt)
+`pub enum TestableFunc[a, b](a -> b)` Er dette en god løsning, ift associated types / complex instance type
 
 ### Svar
