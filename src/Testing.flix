@@ -1,6 +1,7 @@
 
-use Testable.{Testable, Result}
+use Testable.{Testable, TestableFunc, Result, evaluate}
 use Monadic2.{Gen}
+use SplittableRandom.{split}
 
 type alias Config = {
     maxTest = Int32,
@@ -9,31 +10,58 @@ type alias Config = {
     every = Int32 -> List[String] -> String
 }
 
+pub def generate(size: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
+    match gen {
+        case Gen.Gen(g) => 
+            let (r1, _) = split(rand);
+            g(size, r1)
+    }
+
 /// A default setting for the config
-pub def default(): Config = { 
+pub def default(): Config = {
+    // The maximum number of tests to run is 100 by default 
     maxTest = 100,
+    // The maximum number of failed tests before the test is considered failed, 1000 by default
     maxFail = 1000,
+    
     size = n -> n/2 + 3,
-    every = n -> _ -> 
-        "${n}" + String.repeat(String.length("${n}"), "\\b")
+    every = _ -> _ -> ""
 }
 
 pub def verbose(): Config = 
     let func = (n -> args -> 
-        "${n}" + String.intercalateChar('\n', args)
+        "${n}" + ":  " + String.intercalate("\n", args)
     );
     {every = func | default()}
 
-pub def flixCheck(): a -> Unit \ IO with Testable[a] = 
-    ???
+pub def flixCheck(x: a): Unit \ IO with Testable[a] = 
+    check(default(), x)
+
+pub def verboseCheck(x: a): Unit \ IO with Testable[a] = 
+    check(verbose(), x)
 
 pub def check(config: Config, x: a): Unit \ IO with Testable[a] = 
-    println("asd");
-    ???
+    let freshRng = SplittableRandom.fresh();
+    tests(config, evaluate(x), freshRng, 0, 0, Nil)
 
-pub def tests(config: Config, gen: Gen[Result], rng: SplittableRandom, nTest: Int32, nFail: Int32): Unit \ IO = 
-    println("?x");
-    ???
+pub def tests(config: Config, gen: Gen[Result], rng: SplittableRandom, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
+    if (nTest == config.maxTest) 
+        done("OK, passed", nTest, stamps)
+    else if (nFail == config.maxFail)
+        done("Arguments exhausted after", nTest, stamps)
+    else
+        let (r1, r2) = split(rng);
+        let result = generate(config.size(nTest), r2, gen);
+        // TODO print mangler i flix. Console.print er sær
+        Console.println(config.every(nTest, result.arguments));
+        match result.ok {
+            case None =>
+                tests(config, gen, r1, nTest, (nFail + 1), stamps)
+            case Some(true) =>
+                tests(config, gen, r1, (nTest + 1), nFail, (result.stamp :: stamps))
+            case Some(false) =>
+                println("Falsifiable after " + "${nTest}" + " tests:\n" + String.intercalate("\n", result.arguments))
+        }
 
 pub def done(msg: String, nTest: Int32, stamps: List[List[String]]): Unit \ IO = 
     // Helper functions
@@ -63,7 +91,18 @@ pub def done(msg: String, nTest: Int32, stamps: List[List[String]]): Unit \ IO =
 // Overvej om outputtet skal se anderledes ud
 pub def display(l: List[String]): String =
     match l {
-        case Nil => ".\\n",
-        case x :: Nil => " " + "(${x}).\\n",
-        case xs => ".\\n" + String.intercalateChar('\n', List.map(s -> s + ".", xs))
+        case Nil => ".\n",
+        case x :: Nil => " " + "(${x}).\n",
+        case xs => ".\n" + String.intercalate("\n", List.map(s -> s + ".", xs))
     }
+
+
+pub def testingMain(): Unit \ IO =
+    let f: TestableFunc[Int32, Bool] = TestableFunc.TestableFunc(x -> x < 100);
+    let prop = Testable.property(f);
+    // // let prop = Testable.property(true);
+    println("Flix check");
+    flixCheck(prop);
+    println("Verbose check");
+    verboseCheck(prop)
+    

@@ -46,10 +46,10 @@ Introduktion f.eks.
 
 Læs om Shrink / Reduce
 
-
-
-
 ## Designovervejelser
+
+Imports - hent kun ting hvis de bliver brugt flere gange, ellers kald f.eks. Monadic2.generate
+
 
 Lav generatoren således at den spytter en liste ud med ting der kan afprøves, i stedet for specifikke tal, strenge mm. (?)
 gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har testet
