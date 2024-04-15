@@ -1,5 +1,5 @@
 
-use Testable.{Testable, TestableFunc, Result, evaluate}
+use Testable.{Testable, TFunc, TResult, evaluate}
 use Monadic2.{Gen}
 use SplittableRandom.{split}
 
@@ -23,14 +23,22 @@ pub def default(): Config = {
     maxTest = 100,
     // The maximum number of failed tests before the test is considered failed, 1000 by default
     maxFail = 1000,
-    
+    // The size of the test is n/2 + 3 by default
     size = n -> n/2 + 3,
+    
     every = _ -> _ -> ""
+}
+
+pub def createConfig(maxTest: Int32, maxFail: Int32, size: Int32 -> Int32, every: Int32 -> List[String] -> String): Config = {
+    maxTest = maxTest,
+    maxFail = maxFail,
+    size = size,
+    every = every
 }
 
 pub def verbose(): Config = 
     let func = (n -> args -> 
-        "${n}" + ":  " + String.intercalate("\n", args)
+        "${n}" + ":  " + String.intercalate(", ", args) + "\n"
     );
     {every = func | default()}
 
@@ -44,7 +52,7 @@ pub def check(config: Config, x: a): Unit \ IO with Testable[a] =
     let freshRng = SplittableRandom.fresh();
     tests(config, evaluate(x), freshRng, 0, 0, Nil)
 
-pub def tests(config: Config, gen: Gen[Result], rng: SplittableRandom, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
+pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
     if (nTest == config.maxTest) 
         done("OK, passed", nTest, stamps)
     else if (nFail == config.maxFail)
@@ -52,15 +60,17 @@ pub def tests(config: Config, gen: Gen[Result], rng: SplittableRandom, nTest: In
     else
         let (r1, r2) = split(rng);
         let result = generate(config.size(nTest), r2, gen);
-        // TODO print mangler i flix. Console.print er sær
-        Console.println(config.every(nTest, result.arguments));
+        Console.print(config.every(nTest, result.arguments));
         match result.ok {
             case None =>
                 tests(config, gen, r1, nTest, (nFail + 1), stamps)
             case Some(true) =>
                 tests(config, gen, r1, (nTest + 1), nFail, (result.stamp :: stamps))
             case Some(false) =>
-                println("Falsifiable after " + "${nTest}" + " tests:\n" + String.intercalate("\n", result.arguments))
+                if (result.arguments == Nil)
+                    println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + "No arguments.")
+                else
+                    println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + String.intercalate("\n", result.arguments))
         }
 
 pub def done(msg: String, nTest: Int32, stamps: List[List[String]]): Unit \ IO = 
@@ -74,7 +84,6 @@ pub def done(msg: String, nTest: Int32, stamps: List[List[String]]): Unit \ IO =
             case Nil => (0, Nil),
             case head :: _ => (List.length(head), head)
         };
-
     let table = (
         List.filter(x -> not List.isEmpty(x), stamps) |>
         List.sort |>
@@ -96,13 +105,4 @@ pub def display(l: List[String]): String =
         case xs => ".\n" + String.intercalate("\n", List.map(s -> s + ".", xs))
     }
 
-
-pub def testingMain(): Unit \ IO =
-    let f: TestableFunc[Int32, Bool] = TestableFunc.TestableFunc(x -> x < 100);
-    let prop = Testable.property(f);
-    // // let prop = Testable.property(true);
-    println("Flix check");
-    flixCheck(prop);
-    println("Verbose check");
-    verboseCheck(prop)
     

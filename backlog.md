@@ -46,6 +46,10 @@ Introduktion f.eks.
 
 Læs om Shrink / Reduce
 
+Skriv hvorfor vi ikke tester mange properties på een gang; Smart at specifikt få at vide at én property fejler. Mindre smart at få at vide at en eller anden property i en liste af properties har fejlet. prop1 $\cap$ prop2 $\cap$ ... $\cap$ propn = allprops, faktisk mindre smart end hver enkelt. 
+
+Evt Implementer en smartere måde at lave properties på. Er der en smartere måde? Eller er det OK
+
 ## Designovervejelser
 
 Imports - hent kun ting hvis de bliver brugt flere gange, ellers kald f.eks. Monadic2.generate
@@ -57,6 +61,8 @@ gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har
 Er chooseInt et godt valg til at håndtere forskellige opgaver? F.eks som valg af specifik Int interval, men også som definition af vektorstørrelse, men så med parametrene (0, size)
 
 chooseInt bruger modulo, hvilket ikke rigtigt kan håndtere meget store tal. Skal vi i stedet importere noget smart mht Randomm eller evt bruge remainder i stedet?
+
+Overvej om måden at lave properties på kan være smartere (for brugeren).
 
 ## Spørgsmål til Magnus
 
