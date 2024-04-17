@@ -1,5 +1,5 @@
 mod Testable {
-    use Monadic2.{Gen, Arbitrary, return}
+    use Gen.{Gen, Arbitrary, return}
     use Functor.{map}
 
     /// A result of testing a property
@@ -9,7 +9,6 @@ mod Testable {
     /// `stamp` is a list of strings that describe the test
     ///
     /// `arguments` is a list of the arguments (in string form) used in the test
-
     pub type alias TResult = {
         ok = Option[Bool],
         stamp = List[String],
@@ -64,7 +63,7 @@ mod Testable {
 
     pub enum TFunc[a, b](a -> b)
 
-    pub enum TestableFunc2[a, b, c](a -> b -> c)
+    pub enum TFunc2[a, b, c](a -> b -> c)
 
     instance Testable[TFunc[a, b]] with Arbitrary[a], ToString[a], Testable[b] {
         pub def property(f: TFunc[a, b]): Property =
@@ -72,14 +71,12 @@ mod Testable {
             forAll(Arbitrary.arbitrary(), func)
     }
 
-    instance Testable[TestableFunc2[a, b, c]] with Arbitrary[a], Arbitrary[b], ToString[a], ToString[b], Testable[c] {
-        pub def property(f: TestableFunc2[a, b, c]): Property =
-            let TestableFunc2.TestableFunc2(func) = f;
+    instance Testable[TFunc2[a, b, c]] with Arbitrary[a], Arbitrary[b], ToString[a], ToString[b], Testable[c] {
+        pub def property(f: TFunc2[a, b, c]): Property =
+            let TFunc2.TFunc2(func) = f;
             forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), func)
     }
 
-    pub def funcProp(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
-        forAll(aGen, f)
 
     pub def forAll(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
         Property.Property(
@@ -114,24 +111,11 @@ mod Testable {
             )
         )
 
-    pub def forAll4(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c], dGen: Gen[d], f: (a, b, c, d) -> e): Property with ToString[a], ToString[b], ToString[c], ToString[d], Testable[e] =
-        Property.Property(
-            forM (
-                a <- aGen;
-                b <- bGen;
-                c <- cGen;
-                d <- dGen;
-                res <- evaluate(f(a, b, c, d))
-            ) yield (
-                addArgument(d, addArgument(c, addArgument(b, addArgument(a, res))))
-        )
-    )
-
     pub def addArgument(arg: a, res: TResult): TResult with ToString[a] =
         let aString = ToString.toString(arg);
         {arguments = aString :: res.arguments | res}
 
-    pub def ==>(b: Bool, x: a): Property with Testable[a] =
+    pub def implies(b: Bool, x: a): Property with Testable[a] =
         match b {
             case true => Testable.property(x),
             case false => Testable.property()

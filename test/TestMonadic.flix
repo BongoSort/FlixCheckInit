@@ -27,17 +27,17 @@ mod TestMonadic {
 }
 
 mod TestMonadic2 {
-    use Monadic2.{Arbitrary, Gen, applyGen, Rand};
+    use Gen.{Gen, Arbitrary, applyGen, Rand};
     use SplittableRandom.{split, freshWithSeed};
 
-    def sampleNTimes(n: Int32, size: Int32, r: Rand, gen: Monadic2.Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
+    def sampleNTimes(n: Int32, size: Int32, r: Rand, gen: Gen[a], verbose: Bool): List[a] \ IO with Arbitrary[a], ToString[a] =
     match n {
         case 0 => 
             println("Test finished!");
             Nil
         case _ => 
             let (r1, r2) = split(r); //new rand
-            let res = Monadic2.applyGen(gen, size, r1);
+            let res = applyGen(gen, size, r1);
             if (verbose) 
                 println(res)
             else 
@@ -45,7 +45,7 @@ mod TestMonadic2 {
             res :: sampleNTimes(n - 1, size, r2, gen, verbose)
 }
     pub def testRandomListDistribution(): Unit \ IO =
-        let gen: Gen[List[Int32]] = Monadic2.Arbitrary.arbitrary();
+        let gen: Gen[List[Int32]] = Arbitrary.arbitrary();
         let numberTests = 1000;
         let ll = sampleNTimes(numberTests, 20, freshWithSeed(1292645i64), gen, true);
         let res = List.foldLeft((acc, x) -> acc + List.length(x), 0, ll);
@@ -53,5 +53,9 @@ mod TestMonadic2 {
         println("Average length of lists: ${avg}");
         println("Monadic 2 testing done")
 
+    pub def testListOfString(): Unit \ IO =
+        let gen: Gen[List[String]] = Arbitrary.arbitrary();
+        let ll = sampleNTimes(5, 10, freshWithSeed(1292645i64), gen, false);
+        println(ll)
 }
 

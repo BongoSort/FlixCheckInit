@@ -1,5 +1,5 @@
-use Testable.{Testable, TFunc, TestableFunc2, forAll}
-use Monadic2.{Gen, chooseInt}
+use Testable.{Testable, TFunc, TFunc2, forAll, forAll2}
+use Gen.{chooseInt, Arbitrary}
 // use Testable.{TestableFunc => ts} // TODO : spørg Magnus
 pub def testingMain(): Unit \ IO =
     let f = TFunc.TFunc(x -> x < 100);
@@ -32,14 +32,16 @@ pub def testReverse(): Unit \ IO =
 pub def testTranspose(): Unit \ IO =
     def prop_transpose(xs: List[List[Int32]]) = List.transpose(List.transpose(xs)) == xs;
     let f = TFunc.TFunc(prop_transpose);
-    let prop = Testable.property(f);
-    verboseCheck(prop)     
+    verboseCheck(f)     
 pub def testPos(): Unit \ IO =
     let prop = forAll(chooseInt(-5, 100), x -> x*2 >= 0);
-    flixCheck(prop)
+    checkWithSeed(default(), prop, 12345i64)
 
 pub def testtt(): Unit \ IO =
     def prop_add(x: Int32, y: Int32) = x + y == y + x;
-    let f = TestableFunc2.TestableFunc2(prop_add);
-    let prop = Testable.property(f);
-    flixCheck(prop)
+    let f = TFunc2.TFunc2(prop_add);
+    flixCheck(f)
+
+pub def newtest(): Unit \ IO =
+    let prob_true = true;
+    flixCheck(prob_true)

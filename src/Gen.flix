@@ -1,5 +1,5 @@
 
-mod Monadic2 {
+mod Gen {
     use Monad.{>>=}
     use SplittableRandom.{split, nextBool, nextInt32, nextFloat64}
 
@@ -147,6 +147,15 @@ mod Monadic2 {
         'P' :: 'Q' :: 'R' :: 'S' :: 'T' :: 'U' :: 'V' ::
         'W' :: 'X' :: 'Y' :: 'Z' :: Nil))
 
+    pub def chooseString(size: Int32, gen: Gen[Char]): Gen[String] =
+        match size {
+            case _ if size <= 0 => 
+                return(""),
+            case _ => 
+                Applicative.map2((c, s) -> Char.toString(c) + s, gen, chooseString(size-1, gen))
+        }
+        
+
     // Arbitrary trait
     pub trait Arbitrary[a] {
         pub def arbitrary(): Gen[a]
@@ -176,6 +185,13 @@ mod Monadic2 {
     instance Arbitrary[Float64] {
         pub def arbitrary(): Gen[Float64] = 
             sized(size -> chooseFloat(Int32.toFloat64(-size), Int32.toFloat64(size)))
+    }
+
+    instance Arbitrary[String] {
+        pub def arbitrary(): Gen[String] =
+            sized(size ->
+                chooseInt(0, size) >>= (x -> chooseString(x, chooseLowerChar()))
+            )
     }
 
     instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {

@@ -1,6 +1,6 @@
 
 use Testable.{Testable, TFunc, TResult, evaluate}
-use Monadic2.{Gen}
+use Gen.{Gen}
 use SplittableRandom.{split}
 
 type alias Config = {
@@ -51,6 +51,10 @@ pub def verboseCheck(x: a): Unit \ IO with Testable[a] =
 pub def check(config: Config, x: a): Unit \ IO with Testable[a] = 
     let freshRng = SplittableRandom.fresh();
     tests(config, evaluate(x), freshRng, 0, 0, Nil)
+
+pub def checkWithSeed(config: Config, x: a, seed: Int64): Unit \ IO with Testable[a] = 
+    let seededRng = SplittableRandom.freshWithSeed(seed);
+    tests(config, evaluate(x), seededRng, 0, 0, Nil)
 
 pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
     if (nTest == config.maxTest) 
