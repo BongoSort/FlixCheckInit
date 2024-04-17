@@ -50,6 +50,8 @@ Skriv hvorfor vi ikke tester mange properties på een gang; Smart at specifikt f
 
 Evt Implementer en smartere måde at lave properties på. Er der en smartere måde? Eller er det OK
 
+Overvej om vi skal lave lidt om på Collect og Classify i Testable - Vi vil måske gerne have at de ikke returnerer en funktion.
+
 ## Designovervejelser
 
 Imports - hent kun ting hvis de bliver brugt flere gange, ellers kald f.eks. Monadic2.generate
