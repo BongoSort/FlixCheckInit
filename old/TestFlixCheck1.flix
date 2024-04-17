@@ -1,5 +1,3 @@
-use FlixCheck1.{Arbitrary, Gen, applyGen};
-
 @Test
 def test01(): Bool = 1 + 1 == 2
 

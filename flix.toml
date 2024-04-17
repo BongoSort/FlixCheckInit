@@ -2,5 +2,5 @@
 name        = "FlixCheckInit"
 description = "test"
 version     = "0.1.0"
-flix        = "0.45.0"
+flix        = "0.46.0"
 authors     = ["Kasper, Rune, Svend"]
