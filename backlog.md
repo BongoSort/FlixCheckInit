@@ -52,6 +52,10 @@ Evt Implementer en smartere måde at lave properties på. Er der en smartere må
 
 Overvej om vi skal lave lidt om på Collect og Classify i Testable - Vi vil måske gerne have at de ikke returnerer en funktion.
 
+Lav README.md med grundlæggende forklaring til hvordan man bruger flixCheck.
+
+Sørg for at public og ikke public metoder er lavet korrekt. Vi vil gerne styre hvilke metoder der er tilgængelige for brugeren.
+
 ## Designovervejelser
 
 Imports - hent kun ting hvis de bliver brugt flere gange, ellers kald f.eks. Monadic2.generate
@@ -66,8 +70,14 @@ chooseInt bruger modulo, hvilket ikke rigtigt kan håndtere meget store tal. Ska
 
 Overvej om måden at lave properties på kan være smartere (for brugeren).
 
+VerboseCheck printer argumenterne til en test, så man kan se hvad der blev brugt til de fejlede/succefulde cases. Spørgsmålet er om vi også vil printe resultatet, for bedre gennemsigtighed? Tester man modulo(24654,25226) vil man måske gerne have det beregnede resultat med, så man kan se hvorfor den property ikke er overholdt.
+
 ## Spørgsmål til Magnus
 
 `pub enum TestableFunc[a, b](a -> b)` Er dette en god løsning, ift associated types / complex instance type
 
 ### Svar
+
+Matthew says that if you want to define trait instances for functions you must make them effect polymorphic
+So instance[a -> b \ ef]
+and not just instance [a -> b].
