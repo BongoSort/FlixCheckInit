@@ -4,9 +4,9 @@ This is the initial entrypoint for implementing Haskells QuickCheck for the Flix
 
 ## What is FlixCheck
 
-The purpose of FlixCheck is to be a tool for which a Flix programmer can use to be aided in testing properties of programs.
+The purpose of FlixCheck is to be a tool for which a Flix programmer can automatically test some user-defined properties of programs.
 
-FlixCheck was developed based on the QuickCheck implementation in Haskell, and thus follows many of the principles.
+FlixCheck was developed based on the QuickCheck implementation in Haskell, and thus follows many of the same principles.
 
 ## How to use FlixCheck
 
