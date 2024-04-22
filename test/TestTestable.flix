@@ -25,6 +25,10 @@ pub def testReverse(): Unit \ IO =
         verboseCheck(prop)
     }
 
+pub def testRevRev(): Unit \ IO =
+    def prop_revRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
+    check({maxTest = 42| verbose()}, TFunc.TFunc(prop_revRev))
+
 pub def testtt(): Unit \ IO =
     def prop_add(x: Int32, y: Int32) = x + y == y + x;
     let f = TFunc2.TFunc2(prop_add);
