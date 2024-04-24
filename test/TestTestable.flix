@@ -1,7 +1,8 @@
 use Testable.{Testable, TFunc, TFunc2, forAll, forAll2, Property, label, classify, collect, implies}
-use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, sized, vector}
+use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector}
 use Monad.{>>=}
 // use Testable.{TestableFunc => ts} // TODO : spørg Magnus
+
 pub def testingMain(): Unit \ IO =
     let prop = TFunc.TFunc(x -> x < 100);
     let c = {size = _ -> 99| verbose()};
@@ -26,8 +27,8 @@ pub def testReverse(): Unit \ IO =
     }
 
 pub def testRevRev(): Unit \ IO =
-    def prop_revRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
-    check({maxTest = 42| verbose()}, TFunc.TFunc(prop_revRev))
+    def propRevRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
+    check({maxTest = 42| verbose()}, TFunc.TFunc(propRevRev))
 
 pub def testtt(): Unit \ IO =
     def prop_add(x: Int32, y: Int32) = x + y == y + x;
@@ -131,8 +132,6 @@ pub def testInsertOrdered(): Unit \ IO =
 
 pub def testInsertOrdered2(): Unit \ IO =
     // tests the insertOrdered function
-    let func = (e: Int32, xs: List[Int32]) -> implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
-    let prop: Property = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), func);
-    check({maxFail = 500| default()}, prop)
-    
-    
+    let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
+    def propInsertOrdered(e: Int32, xs: List[Int32])  = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
+    verboseCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))

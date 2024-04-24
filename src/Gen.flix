@@ -82,6 +82,10 @@ mod Gen {
         let gens: List[Gen[a]] = List.map(_ -> gen, List.range(0, length));
         List.sequence(gens)
 
+    /// Returns a generator that generates a list of length `length` with values of type `a` in ascending order.
+    pub def orderedListOf(length: Int32, gen: Gen[a]): Gen[List[a]] with Order[a] =
+        Functor.map(List.sort, sizedListOf(length, gen))
+
     /// Returns a generator that generates a value of type `a` from the given non-empty list of generators.
     pub def oneOf(gens: Nel[Gen[a]]): Gen[a] =
         elements(gens) >>= (x -> x)

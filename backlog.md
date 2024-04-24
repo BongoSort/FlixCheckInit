@@ -74,7 +74,7 @@ VerboseCheck printer argumenterne til en test, så man kan se hvad der blev brug
 
 ## Spørgsmål til Magnus
 
-`pub enum TestableFunc[a, b](a -> b)` Er dette en god løsning, ift associated types / complex instance type
+`pub enum TFunc[a, b](a -> b)` Er dette en god løsning, ift associated types / complex instance type
 
 ### Svar
 
