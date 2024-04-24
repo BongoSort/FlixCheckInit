@@ -1,7 +1,6 @@
 use Testable.{Testable, TFunc, TFunc2, forAll, forAll2, Property, label, classify, collect, implies}
 use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector}
 use Monad.{>>=}
-// use Testable.{TestableFunc => ts} // TODO : spørg Magnus
 
 pub def testingMain(): Unit \ IO =
     let prop = TFunc.TFunc(x -> x < 100);
@@ -73,8 +72,8 @@ pub def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
 
 pub def testTranspose(): Unit \ IO =
     let matrixGen: Gen[List[List[Int32]]] = 
-        sized(_ -> 
-            chooseInt(0, 0) >>= l -> sizedListOf(l, vector(l))
+        sized(size -> 
+            chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
         );
     // Check that the matrix self inverse property holds
     flixCheck(forAll(matrixGen, propSelfInverse));
@@ -85,7 +84,10 @@ pub def testTranspose(): Unit \ IO =
 
 pub def testClassify(): Unit \ IO =
     // tests and prints the distribution of n % 2 and stamps them with "even"
-    let prop = forAll(chooseInt(1, 10), n -> classify(Int32.modulo(n, 2) == 0, "even", n == n));
+    def func(n: Int32) = n == n;
+    let propWithEven = n -> classify(Int32.modulo(n, 2) == 0, "even", func(n));
+    let propWithOdd = n -> classify(Int32.modulo(n, 2) == 1, "odd", propWithEven(n));
+    let prop = forAll(chooseInt(1, 10), propWithOdd);
     flixCheck(prop)
     
 pub def testCollectAndClassify(): Unit \ IO =
@@ -104,7 +106,7 @@ pub def testMaxLe(): Unit \ IO =
 
 // Test and hopefully crash modulo
 pub def testModulo(): Unit \ IO =
-    // tests the modulo function, asuming that the result is non-negative
+    // tests the modulo function, assuming that the result is non-negative
     verboseCheck(TFunc2.TFunc2((x, y) -> Int32.modulo(x, y) >= 0))
 
 pub def insertOrdered(e: a, l: List[a]): List[a] with Order[a] =

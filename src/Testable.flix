@@ -35,6 +35,15 @@ mod Testable {
     pub trait Testable[a] {
         pub def property(x: a): Property
     }
+
+    // pub trait Testable2[a] {
+    //     pub def property(x: a): Property
+    // }
+
+    // instance Testable2[a -> b \ ef] {
+    //     pub def property(f: a -> b \ ef): Property =
+    //         ???
+    // }
     
     /// The unit type is not applicable for testing, as there is no tangible result
     instance Testable[Unit] {
@@ -83,7 +92,6 @@ mod Testable {
     //     pub def property(f: a -> b \ ef): Property =
     //         forAll(Arbitrary.arbitrary(), f)
     // }
-
 
     pub def forAll(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
         Property.Property(
