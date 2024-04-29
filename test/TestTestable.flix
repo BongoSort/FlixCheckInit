@@ -22,10 +22,14 @@ pub def testReverse(): Unit \ IO =
     def prop_revApp(pair: (List[Int32], List[Int32])) = List.append(List.reverse(fst(pair)), List.reverse(snd(pair))) == List.reverse(List.append(snd(pair), fst(pair)));
     let propList = forAll(Arbitrary.arbitrary(), prop_revRev) :: forAll(Arbitrary.arbitrary(), prop_rev) :: forAll(Arbitrary.arbitrary(), prop_revApp) :: Nil;
     foreach (prop <- propList) {
-        verboseCheck(prop)
+        flixCheck(prop)
     }
 
 pub def testRevRev(): Unit \ IO =
+    def propRevRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
+    flixCheck(TFunc.TFunc(propRevRev))
+
+pub def testRevRev42(): Unit \ IO =
     def propRevRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
     check({maxTest = 42| verbose()}, TFunc.TFunc(propRevRev))
 
@@ -137,3 +141,4 @@ pub def testInsertOrdered2(): Unit \ IO =
     let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
     def propInsertOrdered(e: Int32, xs: List[Int32])  = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
     verboseCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
+
