@@ -1,51 +1,47 @@
-use Testable.{Testable, TFunc, TFunc2, forAll, forAll2, Property, label, classify, collect, implies}
-use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector}
+use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector, oneOf}
 use Monad.{>>=}
 
-pub def testingMain(): Unit \ IO =
+def sizeConfig(): Unit \ IO =
     let prop = TFunc.TFunc(x -> x < 100);
     let c = {size = _ -> 99| verbose()};
     check(c, prop)
 
-pub def shouldFail(): Unit \ IO =
+def shouldFail(): Unit \ IO =
     // Define a testable function that should fail
     let f = TFunc.TFunc(x -> Int32.pow(x, 2) <= 81);
     // Set the function as a property
     let prop = Testable.property(f);
-    println("Verbose check");
     // Check the property
-    verboseCheck(prop)
+    //verboseCheck(prop)
+    check(verbose(), prop)
 
-pub def testReverse(): Unit \ IO =
-    def prop_revRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
-    def prop_rev(x: Int32) = (x :: Nil) == List.reverse(x :: Nil);
-    def prop_revApp(pair: (List[Int32], List[Int32])) = List.append(List.reverse(fst(pair)), List.reverse(snd(pair))) == List.reverse(List.append(snd(pair), fst(pair)));
-    let propList = forAll(Arbitrary.arbitrary(), prop_revRev) :: forAll(Arbitrary.arbitrary(), prop_rev) :: forAll(Arbitrary.arbitrary(), prop_revApp) :: Nil;
+def testReverse(): Unit \ IO =
+    // Property that checks if the reverse of a list is the same as the original list
+    def propRevRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
+    // Property that checks if the reverse of a single element list is the same as the original list
+    def propRev(x: Int32) = (x :: Nil) == List.reverse(x :: Nil);
+    // Property that checks if the reverse of the concatenation of two lists is the same as the concatenation of the reversed lists
+    def propRevApp(pair: (List[Int32], List[Int32])) = List.append(List.reverse(fst(pair)), List.reverse(snd(pair))) == List.reverse(List.append(snd(pair), fst(pair)));
+    let propList = forAll(Arbitrary.arbitrary(), propRevRev) :: forAll(Arbitrary.arbitrary(), propRev) :: forAll(Arbitrary.arbitrary(), propRevApp) :: Nil;
     foreach (prop <- propList) {
-        verboseCheck(prop)
+        flixCheck(prop)
     }
 
-pub def testRevRev(): Unit \ IO =
-    def propRevRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
-    check({maxTest = 42| verbose()}, TFunc.TFunc(propRevRev))
+def propRevRev(xs: List[Int32]): Bool =
+    List.reverse(List.reverse(xs)) == xs
 
-pub def testtt(): Unit \ IO =
-    def prop_add(x: Int32, y: Int32) = x + y == y + x;
-    let f = TFunc2.TFunc2(prop_add);
-    flixCheck(f)
+def propWithCollect(): Property =
+    let evenListGen = chooseInt(0, 5) >>= n -> vector(2*n);
+    forAll(evenListGen, n -> collect(List.length(n), propRevRev(n)))
 
-pub def newtest(): Unit \ IO =
-    let prob_true = true;
-    flixCheck(prob_true)
-
-// Testing the properties of the List.Transpose function
+/// Testing the properties of the List.Transpose function ///
 
 // The transpose of the transpose of a matrix is the matrix itself
-pub def propSelfInverse(a: List[List[Int32]]): Bool =
+def propSelfInverse(a: List[List[Int32]]): Bool =
     List.transpose(List.transpose(a)) == a
 
 // When transposed the dimentions should be swapped (2x3 -> 3x2)
-pub def propDimensions(a: List[List[Int32]]): Bool =
+def propDimensions(a: List[List[Int32]]): Bool =
     // Helper function for getting the dimensions of a matrix
     def getDimensions(xs: List[List[Int32]]): (Int32, Int32) = (
         let rows = List.length(xs);
@@ -61,7 +57,7 @@ pub def propDimensions(a: List[List[Int32]]): Bool =
     
 
 // (A + B)^T = A^T + B^T
-pub def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
+def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     // Helper function for adding two matrices
     def addMatrix(xs: List[List[Int32]], ys: List[List[Int32]]): List[List[Int32]] = (
         let addFunc = listPair -> List.map(intPair -> fst(intPair) + snd(intPair), List.zip(fst(listPair), snd(listPair)));
@@ -70,7 +66,7 @@ pub def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     List.transpose(addMatrix(a, b)) == addMatrix(List.transpose(a), List.transpose(b))
     
 
-pub def testTranspose(): Unit \ IO =
+def testTranspose(): Unit \ IO =
     let matrixGen: Gen[List[List[Int32]]] = 
         sized(size -> 
             chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
@@ -82,58 +78,53 @@ pub def testTranspose(): Unit \ IO =
     // Check that the matrix addition property holds
     flixCheck(forAll2(matrixGen, matrixGen, propAddition))
 
-pub def testClassify(): Unit \ IO =
-    // tests and prints the distribution of n % 2 and stamps them with "even"
+def testClassify(): Unit \ IO =
+    // tests and prints the distribution of n % 2 and stamps them with "even" or "odd"
     def func(n: Int32) = n == n;
     let propWithEven = n -> classify(Int32.modulo(n, 2) == 0, "even", func(n));
     let propWithOdd = n -> classify(Int32.modulo(n, 2) == 1, "odd", propWithEven(n));
     let prop = forAll(chooseInt(1, 10), propWithOdd);
     flixCheck(prop)
     
-pub def testCollectAndClassify(): Unit \ IO =
+def testCollectAndClassify(): Unit \ IO =
     // prints both the individual distribution of numbers and the distribution of n % 2
     let prop = forAll(chooseInt(1, 10), n -> collect(n, classify(Int32.modulo(n, 2) == 0, "even", n == n)));
     flixCheck(prop)
-
-pub def propMaxLe(x: Int32, y:Int32): Property =
-    // tests the max function
-    implies(x <= y, Int32.max(x, y) == y)
     
 // Test the max function, using the `implies` function to define the property
-pub def testMaxLe(): Unit \ IO =
+def testMaxLe(): Unit \ IO =
     // tests the max function
+    def propMaxLe(x: Int32, y: Int32) = implies(x <= y, Int32.max(x, y) == y);
     flixCheck(TFunc2.TFunc2(propMaxLe))
 
 // Test and hopefully crash modulo
-pub def testModulo(): Unit \ IO =
+def testModulo(): Unit \ IO =
     // tests the modulo function, assuming that the result is non-negative
     verboseCheck(TFunc2.TFunc2((x, y) -> Int32.modulo(x, y) >= 0))
 
-pub def insertOrdered(e: a, l: List[a]): List[a] with Order[a] =
+def insertOrdered(e: a, l: List[a]): List[a] with Order[a] =
     match l {
         case Nil => e :: Nil,
         case (y::ys) if e < y => e :: y :: ys,
         case (y::ys) => y :: insertOrdered(e, ys)
     }
 
-pub def isOrdered(l: List[a]): Bool with Order[a] =
+def isOrdered(l: List[a]): Bool with Order[a] =
     // checks if a list is ordered
     match l {
         case (x :: y :: xs) => x <= y and isOrdered(y :: xs),
         case _ => true
     }
 
-pub def propInsertOrdered(e: Int32, xs: List[Int32]): Property =
-    // defines the property for the insertOrdered function
-    implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)))
-
-
-pub def testInsertOrdered(): Unit \ IO =
+def testInsertOrdered(): Unit \ IO =
+    let propInsertOrdered = TFunc2.TFunc2(
+        (e: Int32, xs: List[Int32]) -> implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)))
+    );
     // tests the insertOrdered function
-    check({maxFail = 500| default()}, TFunc2.TFunc2(propInsertOrdered))
+    check({maxFail = 500| default()}, propInsertOrdered)
 
-pub def testInsertOrdered2(): Unit \ IO =
+def testInsertOrdered2(): Unit \ IO =
     // tests the insertOrdered function
     let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
-    def propInsertOrdered(e: Int32, xs: List[Int32])  = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
-    verboseCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
+    def propInsertOrdered(e: Int32, xs: List[Int32]) = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
+    flixCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
