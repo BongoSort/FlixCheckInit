@@ -25,6 +25,7 @@ def testReverse(): Unit \ IO =
     let propList = forAll(Arbitrary.arbitrary(), propRevRev) :: forAll(Arbitrary.arbitrary(), propRev) :: forAll(Arbitrary.arbitrary(), propRevApp) :: Nil;
     foreach (prop <- propList) {
         flixCheck(prop)
+        flixCheck(prop)
     }
 
 def propRevRev(xs: List[Int32]): Bool =
