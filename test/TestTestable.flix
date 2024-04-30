@@ -30,9 +30,10 @@ def testReverse(): Unit \ IO =
 def propRevRev(xs: List[Int32]): Bool =
     List.reverse(List.reverse(xs)) == xs
 
-def propWithCollect(): Property =
+def propWithCollect(): Unit \ IO =
     let evenListGen = chooseInt(0, 5) >>= n -> vector(2*n);
-    forAll(evenListGen, n -> collect(List.length(n), propRevRev(n)))
+    let prop = forAll(evenListGen, n -> collect(List.length(n), propRevRev(n)));
+    flixCheck(prop)
 
 /// Testing the properties of the List.Transpose function ///
 
@@ -78,29 +79,38 @@ def testTranspose(): Unit \ IO =
     // Check that the matrix addition property holds
     flixCheck(forAll2(matrixGen, matrixGen, propAddition))
 
+
 def testClassify(): Unit \ IO =
     // tests and prints the distribution of n % 2 and stamps them with "even" or "odd"
-    def func(n: Int32) = n == n;
-    let propWithEven = n -> classify(Int32.modulo(n, 2) == 0, "even", func(n));
-    let propWithOdd = n -> classify(Int32.modulo(n, 2) == 1, "odd", propWithEven(n));
-    let prop = forAll(chooseInt(1, 10), propWithOdd);
-    flixCheck(prop)
+    def prop(n: Int32): Property = (
+        (n == n) |> 
+        classify(Int32.modulo(n, 2) == 0, "even") |>
+        classify(Int32.modulo(n, 2) == 1, "odd")
+    );
+    flixCheck(forAll(chooseInt(1, 10), prop))
     
 def testCollectAndClassify(): Unit \ IO =
     // prints both the individual distribution of numbers and the distribution of n % 2
-    let prop = forAll(chooseInt(1, 10), n -> collect(n, classify(Int32.modulo(n, 2) == 0, "even", n == n)));
-    flixCheck(prop)
+    def prop(n: Int32): Property = (
+        (n == n) |>
+        classify(Int32.modulo(n, 2) == 0, "even") |>
+        collect(n)
+    );
+    flixCheck(forAll(chooseInt(1, 10), prop))
     
 // Test the max function, using the `implies` function to define the property
 def testMaxLe(): Unit \ IO =
     // tests the max function
-    def propMaxLe(x: Int32, y: Int32) = implies(x <= y, Int32.max(x, y) == y);
+    def propMaxLe(x: Int32, y: Int32) = 
+        (x <= y) ==> (Int32.max(x, y) == y);
     flixCheck(TFunc2.TFunc2(propMaxLe))
 
 // Test and hopefully crash modulo
 def testModulo(): Unit \ IO =
     // tests the modulo function, assuming that the result is non-negative
-    verboseCheck(TFunc2.TFunc2((x, y) -> Int32.modulo(x, y) >= 0))
+    def propModulo(x: Int32, y: Int32) = 
+        Int32.modulo(x, y) >= 0;
+    verboseCheck(TFunc2.TFunc2(propModulo))
 
 def insertOrdered(e: a, l: List[a]): List[a] with Order[a] =
     match l {

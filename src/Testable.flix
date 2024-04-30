@@ -115,34 +115,37 @@ pub def addArgument(arg: a, res: TResult): TResult with ToString[a] =
     let aString = ToString.toString(arg);
     {arguments = List.append(res.arguments, aString :: Nil) | res}
 
-pub def implies(b: Bool, x: a): Property with Testable[a] =
+pub def implies(b: Bool, x: t): Property with Testable[t] =
     match b {
         case true => Testable.property(x),
         case false => Testable.property()
     }
 
+pub def ==>(b: Bool, x: t): Property with Testable[t] =
+    implies(b, x)
+
 /// Labels a property with a given stamp
-pub def label(s: String, x: a): Property with Testable[a] =
+pub def label(s: String, x: t): Property with Testable[t] =
     let func = res -> {stamp = s :: res.stamp | res};
     Property.Property(
         map(func, evaluate(x))
     )
 
 /// Conditionally labels a test c
-pub def classify(b: Bool, name: String, x: a): Property with Testable[a] =
+pub def classify(b: Bool, name: String): t -> Property with Testable[t] =
     match b {
-        case true => label(name, x),
-        case false => Testable.property(x)
+        case true => label(name),
+        case false => Testable.property
     }
     
 /// Stamps a property with the string "trivial" if true
-pub def trivial(b: Bool, x: a): Property with Testable[a] =
-    classify(b, "trivial", x)
+pub def trivial(): Bool -> t -> Property with Testable[t] =
+    b -> classify(b, "trivial")
 
 /// Collects the distribution of a property, and labels it with the value of the argument
 ///
 /// Example:
 /// let prop = forAll(chooseInt(1, 10), n -> collect(n, n == 5));
 /// flixCheck(prop)
-pub def collect(element: a, x: b): Property with ToString[a], Testable[b]=
-    label(ToString.toString(element), x)
+pub def collect(element: a): t -> Property with ToString[a], Testable[t] =
+    label(ToString.toString(element))
