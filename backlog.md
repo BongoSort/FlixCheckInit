@@ -60,6 +60,7 @@ Sørg for at public og ikke public metoder er lavet korrekt. Vi vil gerne styre 
 
 Imports - hent kun ting hvis de bliver brugt flere gange, ellers kald f.eks. Monadic2.generate
 
+Øh - Har vi brug for point(x: a) i Gen?
 
 Lav generatoren således at den spytter en liste ud med ting der kan afprøves, i stedet for specifikke tal, strenge mm. (?)
 gem resultatet / print resultatet så vi kan reducere/shrink det vi allerede har testet

@@ -66,12 +66,14 @@ pub enum TFunc[a, b](a -> b)
 /// Functions (with 2 params) must be wrapped in TFunc2 to be testable
 pub enum TFunc2[a, b, c](a -> b -> c)
 
+/// Instance of `Testable` for functions of type `a -> b`
 instance Testable[TFunc[a, b]] with Arbitrary[a], ToString[a], Testable[b] {
     pub def property(f: TFunc[a, b]): Property =
         let TFunc.TFunc(func) = f;
         forAll(Arbitrary.arbitrary(), func)
 }
 
+/// Instance of `Testable` for functions of type `(a, b) -> c`
 instance Testable[TFunc2[a, b, c]] with Arbitrary[a], Arbitrary[b], ToString[a], ToString[b], Testable[c] {
     pub def property(f: TFunc2[a, b, c]): Property =
         let TFunc2.TFunc2(func) = f;
