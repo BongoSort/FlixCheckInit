@@ -39,7 +39,7 @@ mod Gen {
     }
 
     /// Returns a generator with of the type `a` and the effect IO.
-    pub def return(x: a): Gen[a] \{} = 
+    pub def return(x: a): Gen[a] = 
         Gen.Gen(_ -> _ -> unchecked_cast(x as _ \ IO))
 
     pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a \ IO =
