@@ -21,7 +21,7 @@ type alias Config = {
     initSeed = Option[Int64]
 }
 /// Generates the test arguments for the test
-pub def generate(size: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
+pub def generate(size: Int32, rand: SplittableRandom[r], gen: Gen[a, r]): a \ IO =
     match gen {
         case Gen.Gen(g) => 
             let (r1, _) = split(rand);
@@ -84,7 +84,7 @@ pub def checkWithSeed(config: Config, x: a, seed: Int64): Unit \ IO with Testabl
     tests(configWithSeed, evaluate(x), seededRng, 0, 0, Nil)
 
 /// 
-pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
+pub def tests(config: Config, gen: Gen[TResult, r], rng: SplittableRandom[r], nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
     if (nTest == config.maxTest) {
         done("OK, passed", nTest, stamps)
     } else if (nFail == config.maxFail) {

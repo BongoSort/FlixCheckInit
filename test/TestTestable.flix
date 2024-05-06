@@ -68,7 +68,7 @@ def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     
 
 def testTranspose(): Unit \ IO =
-    let matrixGen: Gen[List[List[Int32]]] = 
+    let matrixGen = 
         sized(size -> 
             chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
         );
@@ -82,7 +82,7 @@ def testTranspose(): Unit \ IO =
 
 def testClassify(): Unit \ IO =
     // tests and prints the distribution of n % 2 and stamps them with "even" or "odd"
-    def prop(n: Int32): Property = (
+    def prop(n: Int32) = (
         (n == n) |> 
         classify(Int32.modulo(n, 2) == 0, "even") |>
         classify(Int32.modulo(n, 2) == 1, "odd")
@@ -91,7 +91,7 @@ def testClassify(): Unit \ IO =
     
 def testCollectAndClassify(): Unit \ IO =
     // prints both the individual distribution of numbers and the distribution of n % 2
-    def prop(n: Int32): Property = (
+    def prop(n: Int32) = (
         (n == n) |>
         classify(Int32.modulo(n, 2) == 0, "even") |>
         collect(n)

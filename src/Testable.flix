@@ -1,5 +1,7 @@
-use Gen.{Gen, Arbitrary, return}
+use Gen.{Gen, Arbitrary, return, >>=}
 use Functor.{map}
+use Applicative.{point, map2}
+use Monad.{flatMap}
 
 /// A result of testing a property
 ///
@@ -15,48 +17,54 @@ pub type alias TResult = {
 }
 
 /// A property generates results for some testable type
-pub enum Property(Gen[TResult])
+pub enum Property[r: Region](Gen[TResult, r])
 
 /// A result that indicates unapplicable test
 pub def nothing(): TResult =
     {ok = None, stamp = Nil, arguments = Nil}
 
 /// Creates a property from a generator always returning the same result
-pub def result(r: TResult): Property =
-    Property.Property(return(r))
+pub def result(tRes: TResult): Property[r] =
+    Property.Property(return(tRes))
     
 /// Evaluates a property and returns a generator for the result
-pub def evaluate(x: a): Gen[TResult] with Testable[a] = 
+pub def evaluate(x: a): Gen[TResult, r] with Testable[a] = 
     let Property.Property(gen) = Testable.property(x);
     gen
 
 /// The trait for a type that can be tested
 pub trait Testable[a] {
-    pub def property(x: a): Property
+    pub def property(x: a): Property[r]
 }
 
 /// The unit type is not applicable for testing, as there is no tangible result
 instance Testable[Unit] {
-    pub def property(_: Unit): Property =
+    pub def property(_: Unit): Property[r] =
         result(nothing())
+}
+
+instance Testable[Void] {
+    pub def property(_: Void): Property[r] =
+        result(nothing())
+
 }
 
 /// Instance of `Testable` for `Bool`
 instance Testable[Bool] {
-    pub def property(b: Bool): Property =
+    pub def property(b: Bool): Property[r] =
         result({ok = Some(b), stamp = Nil, arguments = Nil})
 }
 
 pub enum TestableResult(TResult)
 
 instance Testable[TestableResult] {
-    pub def property(r: TestableResult): Property =
+    pub def property(r: TestableResult): Property[r] =
         let TestableResult.TestableResult(res) = r;
         result(res)
 }
 
-instance Testable[Property] {
-    pub def property(prop: Property): Property =
+instance Testable[Property[r]] {
+    pub def property(prop: Property[r]): Property[r] =
         prop
 }
 
@@ -68,29 +76,31 @@ pub enum TFunc2[a, b, c](a -> b -> c)
 
 /// Instance of `Testable` for functions of type `a -> b`
 instance Testable[TFunc[a, b]] with Arbitrary[a], ToString[a], Testable[b] {
-    pub def property(f: TFunc[a, b]): Property =
+    pub def property(f: TFunc[a, b]): Property[r] =
         let TFunc.TFunc(func) = f;
         forAll(Arbitrary.arbitrary(), func)
 }
 
 /// Instance of `Testable` for functions of type `(a, b) -> c`
 instance Testable[TFunc2[a, b, c]] with Arbitrary[a], Arbitrary[b], ToString[a], ToString[b], Testable[c] {
-    pub def property(f: TFunc2[a, b, c]): Property =
+    pub def property(f: TFunc2[a, b, c]): Property[r] =
         let TFunc2.TFunc2(func) = f;
         forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), func)
 }
 
-pub def forAll(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
+pub def forAll(aGen: Gen[a, r], f: a -> b): Property[r] with ToString[a], Testable[b] =
     Property.Property(
-        forM (
+        forM(
             a <- aGen;
             res <- evaluate(f(a))
         ) yield (
             addArgument(a, res)
         )
     )
+    
+    
 
-pub def forAll2(aGen: Gen[a], bGen: Gen[b], f: (a, b) -> c): Property with ToString[a], ToString[b], Testable[c] =
+pub def forAll2(aGen: Gen[a, r], bGen: Gen[b, r], f: (a, b) -> c): Property[r] with ToString[a], ToString[b], Testable[c] =
     Property.Property(
         forM (
             a <- aGen;
@@ -101,7 +111,7 @@ pub def forAll2(aGen: Gen[a], bGen: Gen[b], f: (a, b) -> c): Property with ToStr
         )
     )
 
-pub def forAll3(aGen: Gen[a], bGen: Gen[b], cGen: Gen[c], f: (a, b, c) -> d): Property with ToString[a], ToString[b], ToString[c], Testable[d] =
+pub def forAll3(aGen: Gen[a, r], bGen: Gen[b, r], cGen: Gen[c, r], f: (a, b, c) -> d): Property[r] with ToString[a], ToString[b], ToString[c], Testable[d] =
     Property.Property(
         forM (
             a <- aGen;
@@ -117,31 +127,31 @@ pub def addArgument(arg: a, res: TResult): TResult with ToString[a] =
     let aString = ToString.toString(arg);
     {arguments = List.append(res.arguments, aString :: Nil) | res}
 
-pub def implies(b: Bool, x: t): Property with Testable[t] =
+pub def implies(b: Bool, x: t): Property[r] with Testable[t] =
     match b {
         case true => Testable.property(x),
         case false => Testable.property()
     }
 
-pub def ==>(b: Bool, x: t): Property with Testable[t] =
+pub def ==>(b: Bool, x: t): Property[r] with Testable[t] =
     implies(b, x)
 
 /// Labels a property with a given stamp
-pub def label(s: String, x: t): Property with Testable[t] =
+pub def label(s: String, x: t): Property[r] with Testable[t] =
     let func = res -> {stamp = s :: res.stamp | res};
     Property.Property(
         map(func, evaluate(x))
     )
 
 /// Conditionally labels a test c
-pub def classify(b: Bool, name: String): t -> Property with Testable[t] =
+pub def classify(b: Bool, name: String): t -> Property[r] with Testable[t] =
     match b {
         case true => label(name),
         case false => Testable.property
     }
     
 /// Stamps a property with the string "trivial" if true
-pub def trivial(): Bool -> t -> Property with Testable[t] =
+pub def trivial(): Bool -> t -> Property[r] with Testable[t] =
     b -> classify(b, "trivial")
 
 /// Collects the distribution of a property, and labels it with the value of the argument
@@ -149,5 +159,5 @@ pub def trivial(): Bool -> t -> Property with Testable[t] =
 /// Example:
 /// let prop = forAll(chooseInt(1, 10), n -> collect(n, n == 5));
 /// flixCheck(prop)
-pub def collect(element: a): t -> Property with ToString[a], Testable[t] =
+pub def collect(element: a): t -> Property[r] with ToString[a], Testable[t] =
     label(ToString.toString(element))
