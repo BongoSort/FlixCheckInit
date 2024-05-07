@@ -66,6 +66,15 @@ pub def flixCheck(x: a): Unit \ IO with Testable[a] =
 pub def verboseCheck(x: a): Unit \ IO with Testable[a] = 
     check(verbose(), x)
 
+pub def manyCheck2(x: a): Unit \ IO with Testable[a] = 
+    typematch x {
+        case _: Property => check(verbose(), x),
+        case _: _ => println("Nope")
+    }
+
+
+
+
 /// The actual testing function
 /// Should be used by the programmer when a specific test size or max test amount is desired
 pub def check(config: Config, x: a): Unit \ IO with Testable[a] = 

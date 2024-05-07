@@ -118,6 +118,36 @@ mod Gen {
                 unreachable!()
         }
 
+//      /** Arbitrary BigInt */
+//   implicit lazy val arbBigInt: Arbitrary[BigInt] = {
+//     val long: Gen[Long] =
+//       Gen.choose(Long.MinValue, Long.MaxValue).map(x => if (x == 0) 1L else x)
+
+//     val gen1: Gen[BigInt] = for { x <- long } yield BigInt(x)
+//     val gen2: Gen[BigInt] = for { x <- gen1; y <- long } yield x * y
+//     val gen3: Gen[BigInt] = for { x <- gen2; y <- long } yield x * y
+//     val gen4: Gen[BigInt] = for { x <- gen3; y <- long } yield x * y
+
+//     val gen0: Gen[BigInt] =
+//       oneOf(
+//         BigInt(0),
+//         BigInt(1),
+//         BigInt(-1),
+//         BigInt(Int.MaxValue) + 1,
+//         BigInt(Int.MinValue) - 1,
+//         BigInt(Long.MaxValue),
+//         BigInt(Long.MinValue),
+//         BigInt(Long.MaxValue) + 1,
+//         BigInt(Long.MinValue) - 1
+//       )
+
+//     Arbitrary(frequency((5, gen0), (5, gen1), (4, gen2), (3, gen3), (2, gen4)))
+//   }
+
+    pub def chooseIntEdge(): Gen[Int32] =
+    elements(Nel.Nel((Int32.minValue()-1), Int32.minValue() :: -1 :: 0 :: 1 :: Int32.maxValue() :: (Int32.maxValue() + 1) :: Nil))
+
+
     /// Returns a Generator that uniformly generates values in the interval [lower, upper]
     pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] =
         Gen.Gen(_ -> rand ->

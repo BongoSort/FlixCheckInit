@@ -1,4 +1,4 @@
-use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector, oneOf}
+use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector, oneOf, chooseIntEdge}
 use Monad.{>>=}
 
 def sizeConfig(): Unit \ IO =
@@ -138,3 +138,82 @@ def testInsertOrdered2(): Unit \ IO =
     let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
     def propInsertOrdered(e: Int32, xs: List[Int32]) = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
     flixCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
+
+
+def testEdges(): Unit \ IO =
+    def add(a: Int32, b: Int32): Int32 = a + b;
+    def prop(n: Int32, m: Int32): Bool = 
+       add(n,m) == add(n,m);
+    verboseCheck(forAll2(chooseIntEdge(), chooseIntEdge(), prop))
+
+def testEdges2(): Unit \ IO =
+
+    def add(a: Int32, b: Int32): Int32 = a + b;
+    def prop2(n: Int32, m: Int32) = 
+       add(n,m) == add(n,m);
+    // let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
+    // verboseCheck(call2);
+    // verboseCheck(TFunc2.TFunc2(prop2))
+    manyCheck(TFunc2.TFunc2(prop2))
+
+def testEdges4(): Unit \ IO =
+
+    def add(a: Int32, b: Int32): Int32 = 
+        a + b;
+    def prop2(n: Int32, m: Int32) = 
+        add(n,m) == add(n,m);
+    
+    let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
+
+    def addOne(a: Int32): Int32 = 
+        a + 1;
+    def prop(n: Int32) = 
+        addOne(n) == (n + 1);
+    let call1 = forAll(chooseIntEdge(), prop);
+    verboseCheck(call2);
+    verboseCheck(call2);
+    manyCheck(call1)
+
+
+pub def manyCheck(x: a): Unit \ IO with Testable[a], Arbitrary[a], Arbitrary[b], Arbitrary[c] =
+    typematch x {
+        // case x: TFunc1[a, Bool] => 
+        //     // For properties with one argument
+        //     let prop = forAll1(chooseIntEdge(), x);
+        //     verboseCheck(prop)
+        case x:  TFunc2[a, b, c] =>
+            // For properties with two arguments
+            verboseCheck(forAll2(chooseIntEdge(), chooseIntEdge(), x))
+        // case _: TFunc3[a, a, a, Bool] =>
+        //     // For properties with three arguments
+        //     let prop = forAll3(chooseIntEdge(), chooseIntEdge(), chooseIntEdge(), x);
+        //     verboseCheck(prop)
+        case _:_ => println("Not a property")
+    }
+    // match x {
+    //     case _ => 
+    //         let prop = forAll2(chooseIntEdge(), chooseIntEdge(), p);
+    //         verboseCheck(prop),
+    //     case _ => println("Not a property")
+    // }
+    // typematch x {
+    //     case _: Int32 -> (Int32 -> Bool) => 
+    //         let prop = forAll2(chooseIntEdge(), chooseIntEdge(), x);
+    //         verboseCheck(prop)
+    // }
+    // typematch x {
+    //     case _: _->(_->_) => 
+    //         let prop = forAll2(chooseIntEdge(), chooseIntEdge(), x);
+    //         verboseCheck(prop)
+    // } 
+
+
+pub def forAll1(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
+    Property.Property(
+        forM (
+            a <- aGen;
+            res <- evaluate(f(a))
+        ) yield (
+            addArgument(a, res)
+        )
+    )
