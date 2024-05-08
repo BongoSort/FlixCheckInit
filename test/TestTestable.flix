@@ -151,61 +151,48 @@ def testEdges2(): Unit \ IO =
     def add(a: Int32, b: Int32): Int32 = a + b;
     def prop2(n: Int32, m: Int32) = 
        add(n,m) == add(n,m);
-    // let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
-    // verboseCheck(call2);
+    let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
+    verboseCheck(call2)
     // verboseCheck(TFunc2.TFunc2(prop2))
-    manyCheck(TFunc2.TFunc2(prop2))
+    // manyCheck()
 
 def testEdges4(): Unit \ IO =
 
-    def add(a: Int32, b: Int32): Int32 = 
-        a + b;
-    def prop2(n: Int32, m: Int32) = 
-        add(n,m) == add(n,m);
+    // def add(a: Int32, b: Int32): Int32 = 
+        // a + b;
+    // def prop2(n: Int32, m: Int32) = 
+        // add(n,m) == add(n,m);
     
-    let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
+    // let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
 
     def addOne(a: Int32): Int32 = 
         a + 1;
     def prop(n: Int32) = 
         addOne(n) == (n + 1);
     let call1 = forAll(chooseIntEdge(), prop);
-    verboseCheck(call2);
-    verboseCheck(call2);
+    // verboseCheck(call2);
+    // verboseCheck(call2);
     manyCheck(call1)
 
 
-pub def manyCheck(x: a): Unit \ IO with Testable[a], Arbitrary[a], Arbitrary[b], Arbitrary[c] =
-    typematch x {
-        // case x: TFunc1[a, Bool] => 
-        //     // For properties with one argument
-        //     let prop = forAll1(chooseIntEdge(), x);
-        //     verboseCheck(prop)
-        case x:  TFunc2[a, b, c] =>
-            // For properties with two arguments
-            verboseCheck(forAll2(chooseIntEdge(), chooseIntEdge(), x))
-        // case _: TFunc3[a, a, a, Bool] =>
-        //     // For properties with three arguments
-        //     let prop = forAll3(chooseIntEdge(), chooseIntEdge(), chooseIntEdge(), x);
-        //     verboseCheck(prop)
-        case _:_ => println("Not a property")
-    }
-    // match x {
-    //     case _ => 
-    //         let prop = forAll2(chooseIntEdge(), chooseIntEdge(), p);
-    //         verboseCheck(prop),
-    //     case _ => println("Not a property")
-    // }
-    // typematch x {
-    //     case _: Int32 -> (Int32 -> Bool) => 
-    //         let prop = forAll2(chooseIntEdge(), chooseIntEdge(), x);
-    //         verboseCheck(prop)
-    // }
-    // typematch x {
-    //     case _: _->(_->_) => 
-    //         let prop = forAll2(chooseIntEdge(), chooseIntEdge(), x);
-    //         verboseCheck(prop)
-    // } 
+pub def manyCheck(x: a): Unit \ IO =
+match x {
+    case (aGen, f) => let prop = forAll1(aGen, f);
+                verboseCheck(prop),
+    case _ => println("Case _")
+}
+    // let (aGen, f) = x;
+    // def propCheck(aGen: Gen[a], f: a -> b): Unit \ IO = 
+    //     typematch f {
+    //         case _: Property => 
+    //             let prop = forAll1(chooseIntEdge(), x);
+    //             verboseCheck(prop),
+    //         case _: (Gen[a], a -> _) => 
+    //             let prop = forAll2(chooseIntEdge(), chooseIntEdge(), x);
+    //             verboseCheck(prop),
+    //         case _:_ => println("Case _")
+    //     }
+    // propCheck(aGen, f)
 
 
 pub def forAll1(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
