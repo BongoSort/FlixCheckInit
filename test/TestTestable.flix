@@ -157,7 +157,9 @@ def testEdges2(): Unit \ IO =
     // manyCheck()
 
 def testEdges4(): Unit \ IO =
-
+    let prop = TFunc.TFunc(x -> x < 100);
+    let config = {size = _ -> 99, edgeTest = true| verbose()};
+    check(config, prop)
     // def add(a: Int32, b: Int32): Int32 = 
         // a + b;
     // def prop2(n: Int32, m: Int32) = 
@@ -165,42 +167,13 @@ def testEdges4(): Unit \ IO =
     
     // let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
 
-    def addOne(a: Int32): Int32 = 
-        a + 1;
-    def prop(n: Int32) = 
-        addOne(n) == (n + 1);
-    let call1 = forAll(chooseIntEdge(), prop);
+    // def addOne(a: Int32): Int32 = 
+    //     a + 1;
+    // def prop(n: Int32) = 
+    //     addOne(n) == (n + 1);
+    // let call1 = forAll(chooseIntEdge(), prop)
     // verboseCheck(call2);
-    // verboseCheck(call2);
-    manyCheck(call1)
 
 
-pub def manyCheck(x: a): Unit \ IO =
-match x {
-    case (aGen, f) => let prop = forAll1(aGen, f);
-                verboseCheck(prop),
-    case _ => println("Case _")
-}
-    // let (aGen, f) = x;
-    // def propCheck(aGen: Gen[a], f: a -> b): Unit \ IO = 
-    //     typematch f {
-    //         case _: Property => 
-    //             let prop = forAll1(chooseIntEdge(), x);
-    //             verboseCheck(prop),
-    //         case _: (Gen[a], a -> _) => 
-    //             let prop = forAll2(chooseIntEdge(), chooseIntEdge(), x);
-    //             verboseCheck(prop),
-    //         case _:_ => println("Case _")
-    //     }
-    // propCheck(aGen, f)
 
 
-pub def forAll1(aGen: Gen[a], f: a -> b): Property with ToString[a], Testable[b] =
-    Property.Property(
-        forM (
-            a <- aGen;
-            res <- evaluate(f(a))
-        ) yield (
-            addArgument(a, res)
-        )
-    )

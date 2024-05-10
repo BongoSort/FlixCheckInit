@@ -18,7 +18,8 @@ type alias Config = {
     maxFail = Int32,
     size = Int32 -> Int32,
     every = Int32 -> List[String] -> String,
-    initSeed = Option[Int64]
+    initSeed = Option[Int64],
+    edgeTest = Bool
 }
 /// Generates the test arguments for the test
 pub def generate(size: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
@@ -39,16 +40,20 @@ pub def default(): Config = {
     // The every function returns a string with the number of tests and the arguments of the test
     every = _ -> _ -> "",
     // The initial seed is None by default, and hence produces a new random seed
-    initSeed = None
+    initSeed = None,
+    // Testing edges is True by default
+    edgeTest = true
 }
 
 /// A function that creates a config with the given parameters
-pub def createConfig(maxTest: Int32, maxFail: Int32, size: Int32 -> Int32, every: Int32 -> List[String] -> String, initSeed: Option[Int64]): Config = {
+pub def createConfig(maxTest: Int32, maxFail: Int32, size: Int32 -> Int32, every: Int32 -> List[String] -> String, initSeed: Option[Int64], edgeTest: Bool): Config = {
     maxTest = maxTest,
     maxFail = maxFail,
     size = size,
     every = every,
-    initSeed = initSeed
+    initSeed = initSeed,
+    edgeTest = edgeTest
+    
 }
 
 /// A verbose version of the default config, prints more detailed information about the tests
@@ -66,18 +71,16 @@ pub def flixCheck(x: a): Unit \ IO with Testable[a] =
 pub def verboseCheck(x: a): Unit \ IO with Testable[a] = 
     check(verbose(), x)
 
-pub def manyCheck2(x: a): Unit \ IO with Testable[a] = 
-    typematch x {
-        case _: Property => check(verbose(), x),
-        case _: _ => println("Nope")
-    }
-
-
-
-
 /// The actual testing function
 /// Should be used by the programmer when a specific test size or max test amount is desired
 pub def check(config: Config, x: a): Unit \ IO with Testable[a] = 
+    // match config.edgeTest {
+        // case true => 
+        //     let edgeGen = chooseIntEdge();
+        //     checkWithSeed(config, edgeGen, 0)
+        // case false => 
+        //     checkWithSeed(config, Gen.gen(x), 0)
+
     match config.initSeed {
         case None => 
             let seed = Time.Epoch.microseconds();
@@ -98,6 +101,8 @@ pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: I
         done("OK, passed", nTest, stamps)
     } else if (nFail == config.maxFail) {
         done("Arguments exhausted after", nTest, stamps)
+    } else if (config.edgeTest) {
+        produceEdgeTests(config, gen, nTest, nFail, stamps)
     } else {
         let (r1, r2) = split(rng);
         let result = generate(config.size(nTest), r2, gen);
@@ -116,6 +121,24 @@ pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: I
                     printSeed(config.initSeed)
                 }
         }
+    }
+pub def produceEdgeTests(config: Config, gen: Gen[TResult], nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
+    let edgeGen = chooseIntEdge();
+    let result = generate(config.size(nTest), edgeGen);
+    System.StdOut.print(config.every(nTest, result.arguments));
+    match result.ok {
+        case None =>
+            tests(config, gen,  nTest, (nFail + 1), stamps)
+        case Some(true) =>
+            tests(config, gen, (nTest + 1), nFail, (result.stamp :: stamps))
+        case Some(false) =>
+            if (result.arguments == Nil) {
+                println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + "No arguments.");
+                printSeed(config.initSeed)
+            } else {
+                println("Falsifiable after " + "${nTest + 1}" + " test(s) with argument(s):\n" + String.intercalate("\n", result.arguments));
+                printSeed(config.initSeed)
+            }
     }
 
 /// Prints the seed used in the test

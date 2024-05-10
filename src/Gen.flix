@@ -144,8 +144,9 @@ mod Gen {
 //     Arbitrary(frequency((5, gen0), (5, gen1), (4, gen2), (3, gen3), (2, gen4)))
 //   }
 
+    /// Generates edge cases for Int32. Produces 7 cases.
     pub def chooseIntEdge(): Gen[Int32] =
-    elements(Nel.Nel((Int32.minValue()-1), Int32.minValue() :: -1 :: 0 :: 1 :: Int32.maxValue() :: (Int32.maxValue() + 1) :: Nil))
+        elements(Nel.Nel((Int32.minValue()-1), Int32.minValue() :: -1 :: 0 :: 1 :: Int32.maxValue() :: (Int32.maxValue() + 1) :: Nil))
 
 
     /// Returns a Generator that uniformly generates values in the interval [lower, upper]
