@@ -1,4 +1,4 @@
-use Gen.{Gen}
+use GenTest.{Gen}
 use SplittableRandom.{split}
 
 ///
@@ -21,11 +21,11 @@ type alias Config = {
     initSeed = Option[Int64]
 }
 /// Generates the test arguments for the test
-pub def generate(size: Int32, rand: SplittableRandom[r], gen: Gen[a, r]): a \ IO =
+pub def generate(size: Int32, rand: SplittableRandom[r], gen: Gen[r, a], rc: Region[r]): a \ {r} =
     match gen {
         case Gen.Gen(g) => 
             let (r1, _) = split(rand);
-            g(size, r1)  
+            g(size, rc, r1)  
     }
 
 /// A default setting for the config
@@ -59,45 +59,45 @@ pub def verbose(): Config =
     {every = func | default()}
 
 /// Standard flixCheck function. Uses default config.
-pub def flixCheck(x: a): Unit \ IO with Testable[a] = 
-    check(default(), x)
+pub def flixCheck(x: a, rc: Region[r]): Unit \ {IO, r} with Testable[a] = 
+    check(default(), x, rc)
 
 /// Standard verbose version of flixCheck. Uses default config.
-pub def verboseCheck(x: a): Unit \ IO with Testable[a] = 
-    check(verbose(), x)
+pub def verboseCheck(x: a, rc: Region[r]): Unit \ {IO, r} with Testable[a] = 
+    check(verbose(), x, rc)
 
 /// The actual testing function
 /// Should be used by the programmer when a specific test size or max test amount is desired
-pub def check(config: Config, x: a): Unit \ IO with Testable[a] = 
+pub def check(config: Config, x: a, rc: Region[r]): Unit \ {IO, r} with Testable[a] = 
     match config.initSeed {
         case None => 
             let seed = Time.Epoch.microseconds();
-            tests({initSeed = Some(seed) | config}, evaluate(x), SplittableRandom.freshWithSeed(seed), 0, 0, Nil)
+            tests({initSeed = Some(seed) | config}, evaluate(x), SplittableRandom.freshWithSeed(rc, seed), 0, 0, Nil, rc)
         case Some(s) => 
-            tests({initSeed = Some(s) | config}, evaluate(x), SplittableRandom.freshWithSeed(s), 0, 0, Nil)
+            tests({initSeed = Some(s) | config}, evaluate(x), SplittableRandom.freshWithSeed(rc, s), 0, 0, Nil, rc)
     }
 
 ///The actual testing function when a specific seed is desired
-pub def checkWithSeed(config: Config, x: a, seed: Int64): Unit \ IO with Testable[a] = 
+pub def checkWithSeed(config: Config, x: a, seed: Int64, rc: Region[r]): Unit \ {IO, r} with Testable[a] = 
     let configWithSeed = {initSeed = Some(seed) | config};
-    let seededRng = SplittableRandom.freshWithSeed(seed);
-    tests(configWithSeed, evaluate(x), seededRng, 0, 0, Nil)
+    let seededRng = SplittableRandom.freshWithSeed(rc, seed);
+    tests(configWithSeed, evaluate(x), seededRng, 0, 0, Nil, rc)
 
 /// 
-pub def tests(config: Config, gen: Gen[TResult, r], rng: SplittableRandom[r], nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
+pub def tests(config: Config, gen: Gen[r, TResult], rng: SplittableRandom[r], nTest: Int32, nFail: Int32, stamps: List[List[String]], rc: Region[r]): Unit \ {IO, r} = 
     if (nTest == config.maxTest) {
         done("OK, passed", nTest, stamps)
     } else if (nFail == config.maxFail) {
         done("Arguments exhausted after", nTest, stamps)
     } else {
         let (r1, r2) = split(rng);
-        let result = generate(config.size(nTest), r2, gen);
+        let result = generate(config.size(nTest), r2, gen, rc);
         System.StdOut.print(config.every(nTest, result.arguments));
         match result.ok {
             case None =>
-                tests(config, gen, r1, nTest, (nFail + 1), stamps)
+                tests(config, gen, r1, nTest, (nFail + 1), stamps, rc)
             case Some(true) =>
-                tests(config, gen, r1, (nTest + 1), nFail, (result.stamp :: stamps))
+                tests(config, gen, r1, (nTest + 1), nFail, (result.stamp :: stamps), rc)
             case Some(false) =>
                 if (result.arguments == Nil) {
                     println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + "No arguments.");
@@ -148,5 +148,18 @@ pub def display(l: List[String]): String =
         case x :: Nil => " " + "(${x}).\n",
         case xs => ".\n" + String.intercalate("\n", List.map(s -> s + ".", xs))
     }
+
+pub def arrayProp(x: Array[Int32, r]): Bool = 
+    Array.length(x) == 5
+
+pub def intProp(x: Int32): Bool = 
+    x == 5
+
+pub def testArray(): Unit \ IO = 
+    use GenTest.{Arbitrary};
+    region rc {
+        flixCheck(TFunc.TFunc(intProp), rc)
+    }
+    
 
     

@@ -6,7 +6,7 @@ pub enum SplittableRandom[_r: Region](##java.util.SplittableRandom)
 mod SplittableRandom {
 
     /// Returns a new SplittableRandom instance that is initialized with a random seed.
-    pub def fresh(_rc: Region[r], s: Int64): SplittableRandom[r] \ r + IO =
+    pub def fresh(_rc: Region[r]): SplittableRandom[r] \ r + IO =
         import java_new java.util.SplittableRandom(): ##java.util.SplittableRandom \ r + IO as newSplittableRandom;
         SplittableRandom(newSplittableRandom())
 

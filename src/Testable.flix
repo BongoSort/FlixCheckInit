@@ -1,7 +1,4 @@
-use Gen.{Gen, Arbitrary, return, >>=}
-use Functor.{map}
-use Applicative.{point, map2}
-use Monad.{flatMap}
+use GenTest.{Gen, Arbitrary, return}
 
 /// A result of testing a property
 ///
@@ -17,7 +14,7 @@ pub type alias TResult = {
 }
 
 /// A property generates results for some testable type
-pub enum Property[r: Region](Gen[TResult, r])
+pub enum Property[r: Region](Gen[r, TResult])
 
 /// A result that indicates unapplicable test
 pub def nothing(): TResult =
@@ -28,7 +25,7 @@ pub def result(tRes: TResult): Property[r] =
     Property.Property(return(tRes))
     
 /// Evaluates a property and returns a generator for the result
-pub def evaluate(x: a): Gen[TResult, r] with Testable[a] = 
+pub def evaluate(x: a): Gen[r, TResult] with Testable[a] = 
     let Property.Property(gen) = Testable.property(x);
     gen
 
@@ -88,19 +85,17 @@ instance Testable[TFunc2[a, b, c]] with Arbitrary[a], Arbitrary[b], ToString[a],
         forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), func)
 }
 
-pub def forAll(aGen: Gen[a, r], f: a -> b): Property[r] with ToString[a], Testable[b] =
+pub def forAll(aGen: Gen[r, a], f: a -> b): Property[r] with ToString[a], Testable[b] =
     Property.Property(
-        forM(
+        forM (
             a <- aGen;
             res <- evaluate(f(a))
         ) yield (
             addArgument(a, res)
         )
     )
-    
-    
 
-pub def forAll2(aGen: Gen[a, r], bGen: Gen[b, r], f: (a, b) -> c): Property[r] with ToString[a], ToString[b], Testable[c] =
+pub def forAll2(aGen: Gen[r, a], bGen: Gen[r, b], f: (a, b) -> c): Property[r] with ToString[a], ToString[b], Testable[c] =
     Property.Property(
         forM (
             a <- aGen;
@@ -111,7 +106,7 @@ pub def forAll2(aGen: Gen[a, r], bGen: Gen[b, r], f: (a, b) -> c): Property[r] w
         )
     )
 
-pub def forAll3(aGen: Gen[a, r], bGen: Gen[b, r], cGen: Gen[c, r], f: (a, b, c) -> d): Property[r] with ToString[a], ToString[b], ToString[c], Testable[d] =
+pub def forAll3(aGen: Gen[r, a], bGen: Gen[r, b], cGen: Gen[r, c], f: (a, b, c) -> d): Property[r] with ToString[a], ToString[b], ToString[c], Testable[d] =
     Property.Property(
         forM (
             a <- aGen;
@@ -140,7 +135,7 @@ pub def ==>(b: Bool, x: t): Property[r] with Testable[t] =
 pub def label(s: String, x: t): Property[r] with Testable[t] =
     let func = res -> {stamp = s :: res.stamp | res};
     Property.Property(
-        map(func, evaluate(x))
+        Functor.map(func, evaluate(x))
     )
 
 /// Conditionally labels a test c
