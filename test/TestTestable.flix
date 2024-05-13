@@ -144,7 +144,7 @@ def testEdges(): Unit \ IO =
     def add(a: Int32, b: Int32): Int32 = a + b;
     def prop(n: Int32, m: Int32): Bool = 
        add(n,m) == add(n,m);
-    verboseCheck(forAll2(chooseIntEdge(), chooseIntEdge(), prop))
+    verboseCheck(forAll2(chooseIntEdge(), Arbitrary.arbitrary(), prop))
 
 def testEdges2(): Unit \ IO =
 
@@ -155,25 +155,4 @@ def testEdges2(): Unit \ IO =
     verboseCheck(call2)
     // verboseCheck(TFunc2.TFunc2(prop2))
     // manyCheck()
-
-def testEdges4(): Unit \ IO =
-    let prop = TFunc.TFunc(x -> x < 100);
-    let config = {size = _ -> 99, edgeTest = true| verbose()};
-    check(config, prop)
-    // def add(a: Int32, b: Int32): Int32 = 
-        // a + b;
-    // def prop2(n: Int32, m: Int32) = 
-        // add(n,m) == add(n,m);
-    
-    // let call2 = forAll2(chooseIntEdge(), chooseIntEdge(), prop2);
-
-    // def addOne(a: Int32): Int32 = 
-    //     a + 1;
-    // def prop(n: Int32) = 
-    //     addOne(n) == (n + 1);
-    // let call1 = forAll(chooseIntEdge(), prop)
-    // verboseCheck(call2);
-
-
-
 

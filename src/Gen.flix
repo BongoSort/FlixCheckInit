@@ -191,7 +191,6 @@ mod Gen {
             case _ => 
                 Applicative.map2((c, s) -> Char.toString(c) + s, gen, chooseString(size-1, gen))
         }
-        
 
     /// Arbitrary trait 
     pub trait Arbitrary[a] {
@@ -208,6 +207,8 @@ mod Gen {
     instance Arbitrary[Int32] {
         pub def arbitrary(): Gen[Int32] =
             sized(size -> chooseInt(-size, size))
+    //     pub def arbitraryEdge(): Gen[Int32] =
+    //         sized(_ -> chooseIntEdge())
     }
 
     /// Arbitrary instance for the Bool type.
