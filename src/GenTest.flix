@@ -30,8 +30,7 @@ mod GenTest {
                 let (r1, r2) = split(rand);
                 unchecked_cast(
                     let Gen.Gen(func) = f(applyGen(aGen, size, rc, r1));
-                    func(size, rc, r2) as _ \ r)
-            )
+                    func(size, rc, r2) as _ \ r))
             )
     }
 
