@@ -1,4 +1,4 @@
-use GenTest.{Gen}
+use Gen.{Gen}
 use SplittableRandom.{split}
 
 ///
@@ -21,7 +21,7 @@ type alias Config = {
     initSeed = Option[Int64]
 }
 /// Generates the test arguments for the test
-pub def generate(size: Int32, rand: SplittableRandom[r], gen: Gen[r, a], rc: Region[r]): a \ {r} =
+pub def generate(size: Int32, rand: SplittableRandom[r], gen: Gen[a, r], rc: Region[r]): a \ {r} =
     match gen {
         case Gen.Gen(g) => 
             let (r1, _) = split(rand);
@@ -84,7 +84,7 @@ pub def checkWithSeed(config: Config, x: a, seed: Int64, rc: Region[r]): Unit \ 
     tests(configWithSeed, evaluate(x), seededRng, 0, 0, Nil, rc)
 
 /// 
-pub def tests(config: Config, gen: Gen[r, TResult], rng: SplittableRandom[r], nTest: Int32, nFail: Int32, stamps: List[List[String]], rc: Region[r]): Unit \ {IO, r} = 
+pub def tests(config: Config, gen: Gen[TResult, r], rng: SplittableRandom[r], nTest: Int32, nFail: Int32, stamps: List[List[String]], rc: Region[r]): Unit \ {IO, r} = 
     if (nTest == config.maxTest) {
         done("OK, passed", nTest, stamps)
     } else if (nFail == config.maxFail) {
@@ -155,11 +155,10 @@ pub def arrayProp(x: Array[Int32, r]): Bool =
 pub def intProp(x: Int32): Bool = 
     x == 5
 
-pub def testArray(): Unit \ IO = 
-    use GenTest.{Arbitrary};
-    region rc {
-        flixCheck(TFunc.TFunc(intProp), rc)
-    }
+// pub def testArray(): Unit \ IO = 
+//     region rc {
+//         flixCheck(TFunc.TFunc(arrayProp), rc)
+//     }
     
 
     

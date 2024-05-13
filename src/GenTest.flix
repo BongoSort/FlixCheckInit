@@ -52,8 +52,8 @@ mod GenTest {
             Gen.Gen(_ -> _ -> rand -> SplittableRandom.nextInt32(rand, 5, 6))
     }
 
-    instance Arbitrary[Array[a, r1]] with Arbitrary[a] {
-        pub def arbitrary(): Gen[r, Array[a, r]] = 
-            Gen.Gen(_ -> rc -> _ -> Array.empty(rc, 5))
-    }
+    // instance Arbitrary[Array[a, r1]] with Arbitrary[a] {
+    //     pub def arbitrary(): Gen[r2, Array[a, r2]] = 
+    //         Gen.Gen(_ -> rc -> _ -> Array.empty(rc, 5))
+    // }
 }
