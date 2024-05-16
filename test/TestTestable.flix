@@ -155,4 +155,7 @@ def testEdges2(): Unit \ IO =
     verboseCheck(call2)
     // verboseCheck(TFunc2.TFunc2(prop2))
     // manyCheck()
-
+def testArray(): Unit \ IO =
+    def propArray(xs: Array[Int32, Region])= 
+        xs.length == xs.length;
+    verboseCheck(forAll(???, propArray))
