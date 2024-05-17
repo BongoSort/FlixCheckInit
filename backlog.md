@@ -44,7 +44,7 @@
 Lav bachelor paper
 Introduktion f.eks.
 
-Læs om Shrink / Reduce
+// TODO vi kan kun tage Ints i TFunc
 
 Skriv hvorfor vi ikke tester mange properties på een gang; Smart at specifikt få at vide at én property fejler. Mindre smart at få at vide at en eller anden property i en liste af properties har fejlet. prop1 $\cap$ prop2 $\cap$ ... $\cap$ propn = allprops, faktisk mindre smart end hver enkelt. 
 
