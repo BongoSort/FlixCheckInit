@@ -1,4 +1,3 @@
-use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector, oneOf}
 use Monad.{>>=}
 
 def sizeConfig(): Unit \ IO =
