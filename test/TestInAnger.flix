@@ -28,19 +28,27 @@ pub def testAppend(): Unit \ IO =
 // count
 pub def testCount(): Unit \ IO =
     // Property that checks if the count of all elements in a list is the same as the length of the list
-    def propCount(xs: List[Int32]) = List.count(x -> x == x, xs) == List.length(xs);
-    let propList = TFunc.TFunc(propCount) :: Nil;
+    def propCount(xs: List[Bool]) = List.count(x -> x == x, xs) == List.length(xs);
+    def propCount2(xs: List[Char]) = List.count(x -> x == x, xs) == List.length(xs);
+    def propCount3(xs: List[Float64]) = List.count(x -> x == x, xs) == List.length(xs);
+    def propCount4(xs: List[Int32]) = List.count(x -> x == x, xs) == List.length(xs);
+    def propCount5(xs: List[String]) = List.count(x -> x == x, xs) == List.length(xs);
+    let propList = forAll(Arbitrary.arbitrary(), propCount) :: 
+                    forAll(Arbitrary.arbitrary(), propCount2) :: 
+                    forAll(Arbitrary.arbitrary(), propCount3) :: 
+                    forAll(Arbitrary.arbitrary(), propCount4) :: 
+                    forAll(Arbitrary.arbitrary(), propCount5) :: Nil;
     foreach (prop <- propList) {
         flixCheck(prop)
     }
 // distinct
 pub def testDistinct(): Unit \ IO =
     // Property that checks if the distinct of a list is the same as the list with duplicates removed
-    def propDistinct(xs: List[Int32]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
-    def propDistinct2(xs: List[Float64]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
-    def propDistinct3(xs: List[String]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
-    def propDistinct4(xs: List[Bool]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
-    def propDistinct5(xs: List[Char]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
+    def propDistinct(xs: List[Bool]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
+    def propDistinct2(xs: List[Char]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
+    def propDistinct3(xs: List[Float64]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
+    def propDistinct4(xs: List[Int32]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
+    def propDistinct5(xs: List[String]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
     
     // let propList = TFunc.TFunc(propDistinct):: Nil; // TODO vi kan kun tage Ints i TFunc
     
@@ -58,6 +66,7 @@ pub def testTest(): Unit \ IO =
     println(List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs)));
     println(List.distinct(xs))
 // distinctWith
+
 // drop
 // dropWhile
 // empty
