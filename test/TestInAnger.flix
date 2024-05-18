@@ -27,10 +27,25 @@ pub def testAppend(): Unit \ IO =
     def propAppend2(xs: List[Int32], ys: List[Int32]) = List.append(xs, ys) == xs ::: ys;
     // Appending should give the same result as folding over the list with the append function
     def propAppend3(xs: List[Int32], ys: List[Int32]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    let propList = TFunc2.TFunc2(propAppend) :: TFunc2.TFunc2(propAppend2) :: TFunc2.TFunc2(propAppend3) :: Nil;
+    // testing with different types
+    def propAppend4(xs: List[Char], ys: List[Char]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend5(xs: List[String], ys: List[String]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend6(xs: List[Bool], ys: List[Bool]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend7(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    // Slight bug/ inconvenience : we can only combine TFuncs of the same type.
+    let propList : List[TFunc2[List[Int32], List[Int32], Bool]]= TFunc2.TFunc2(propAppend) :: TFunc2.TFunc2(propAppend2) :: TFunc2.TFunc2(propAppend3) :: Nil;
+    let otherProps = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend4) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend5) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend6) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend7) :: Nil;
     foreach (prop <- propList) {
         flixCheck(prop)
+    };
+    foreach (oProp <- otherProps) {
+        flixCheck(oProp)
     }
+    
+    
 // count
 pub def testCount(): Unit \ IO =
     // Property that checks if the count of all elements in a list is the same as the length of the list
@@ -39,7 +54,7 @@ pub def testCount(): Unit \ IO =
     def propCount3(xs: List[Float64]) = List.count(x -> x == x, xs) == List.length(xs);
     def propCount4(xs: List[Int32]) = List.count(x -> x == x, xs) == List.length(xs);
     def propCount5(xs: List[String]) = List.count(x -> x == x, xs) == List.length(xs);
-    let propList = forAll(Arbitrary.arbitrary(), propCount) :: 
+    let propList: List[Property] = forAll(Arbitrary.arbitrary(), propCount) :: 
                     forAll(Arbitrary.arbitrary(), propCount2) :: 
                     forAll(Arbitrary.arbitrary(), propCount3) :: 
                     forAll(Arbitrary.arbitrary(), propCount4) :: 
@@ -71,6 +86,8 @@ pub def testTest(): Unit \ IO =
     // let ys = 4 :: 5 :: 6 :: Nil;
     println(List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs)));
     println(List.distinct(xs))
+
+
 // distinctWith
 
 // drop
