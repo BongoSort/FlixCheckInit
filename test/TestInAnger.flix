@@ -9,7 +9,13 @@ pub def runAllTests(): Unit \ IO =
 pub def testAp(): Unit \ IO =
     // Adding two lists element-wise in two different ways should give the same result
     def propAp(xs: List[Int32], ys: List[Int32]) = List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
-    let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp) :: Nil;
+    def propAp2(xs: List[Float64], ys: List[Float64]) = List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
+    def propAp3(xs: List[Bool], ys: List[Bool]) = List.ap(List.map(x -> y -> x and y)(xs), ys) == List.flatMap(x -> List.map(y -> x and y)(ys))(xs);
+    def propAp4(xs: List[String], ys: List[String]) = List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
+    let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp2) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp3) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp4) :: Nil;
     foreach (prop <- propList) {
         flixCheck(prop)
     }
