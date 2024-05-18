@@ -23,16 +23,25 @@ type alias Config = {
 
 /// A default setting for the config
 ///
-/// The maximum number of tests to run is 100 by default 
-/// The maximum number of failed tests before the test is considered failed, 1000 by default
-/// The size of the test is n/2 + 3 by default
-/// The every function returns a string with the number of tests and the arguments of the test
-/// The initial seed is None by default, and hence produces a new random seed
+/// maxTest: 100
+///
+/// maxFail: 1000
+///
+/// size: n/2 + 3
+///
+/// every: ""
+///
+/// initSeed: None
 pub def default(): Config = {
+    // The maximum number of tests to run is 100 by default 
     maxTest = 100,
+    // The maximum number of failed tests before the test is considered failed, 1000 by default
     maxFail = 1000,
+    // The size of the test is n/2 + 3 by default
     size = n -> n/2 + 3,
+    // The every function returns a string with the number of tests and the arguments of the test
     every = _ -> _ -> "",
+    // The initial seed is None by default, and hence produces a new random seed
     initSeed = None
 }
 
