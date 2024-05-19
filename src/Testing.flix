@@ -32,9 +32,9 @@ type alias Config = {
 /// every: ""
 ///
 /// initSeed: None
-    // The maximum number of tests to run is 100 by default 
-pub def default(): Config = {
 
+pub def default(): Config = {
+    // The maximum number of tests to run is 100 by default 
     maxTest = 100,
     // The maximum number of failed tests before the test is considered failed, 1000 by default
     maxFail = 1000,
