@@ -4,7 +4,11 @@ pub def runAllTests(): Unit \ IO =
     testAppend();
     testCount();
     testDistinct();
+    testDestinctWith();
+    testDrop();
+    testDropWhile();
     testReverse()
+
 // ap
 pub def testAp(): Unit \ IO =
     // Adding two lists element-wise in two different ways should give the same result
@@ -22,6 +26,7 @@ pub def testAp(): Unit \ IO =
     foreach (prop <- propList) {
         flixCheck(prop)
     }
+
 // append
 pub def testAppend(): Unit \ IO =
     // Testing the ++ operator
@@ -48,7 +53,6 @@ pub def testAppend(): Unit \ IO =
         flixCheck(oProp)
     }
     
-    
 // count
 pub def testCount(): Unit \ IO =
     // Property that checks if the count of all elements in a list is the same as the length of the list
@@ -65,6 +69,7 @@ pub def testCount(): Unit \ IO =
     foreach (prop <- propList) {
         flixCheck(prop)
     }
+
 // distinct
 pub def testDistinct(): Unit \ IO =
     // Property that checks if the distinct of a list is the same as the list with duplicates removed
@@ -73,9 +78,6 @@ pub def testDistinct(): Unit \ IO =
     def propDistinct3(xs: List[Float64]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
     def propDistinct4(xs: List[Int32]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
     def propDistinct5(xs: List[String]) = List.distinct(xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
-    
-    // let propList = TFunc.TFunc(propDistinct):: Nil; // TODO vi kan kun tage Ints i TFunc
-    
     let propList = forAll(Arbitrary.arbitrary(), propDistinct) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct2) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct3) :: 
@@ -84,17 +86,54 @@ pub def testDistinct(): Unit \ IO =
     foreach (prop <- propList) {
         flixCheck(prop)
     }
-pub def testTest(): Unit \ IO =
-    let xs = List#{"hej", "med", "dig", "hej"};
-    // let ys = 4 :: 5 :: 6 :: Nil;
-    println(List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs)));
-    println(List.distinct(xs))
-
 
 // distinctWith
+pub def testDestinctWith():Unit \ IO =
+    // distinctWith Returns the list l with duplicates removed using the supplied function f for comparison. 
+    // The first occurrence of an element is kept and except for the removal of subsequent duplicates the order of l is preserved.
+    // Property that checks if the distinct of a list is the same as the list with duplicates removed
+    def propDistinctWith(xs: List[Int32]) = List.distinctWith((x, y) -> x == y, xs) == List.reverse(List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs));
+    let propList = forAll(Arbitrary.arbitrary(), propDistinctWith) :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 
 // drop
+pub def testDrop(): Unit \ IO =
+    // drop Returns l without the first n elements.
+    def propDrop(n : Int32, xs: List[Int32]) = 
+    //Big thanks for not needing commas between the cases anymore!!
+    match (n, List.length(xs)) {
+            case (_, len) if n > len => List.drop(n, xs) == Nil
+            case (_, _) if n < 0 => List.drop(n, xs) == xs
+            case (_, len) => List.length(List.drop(n, xs)) == len - n
+        };
+    let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propDrop) :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
 // dropWhile
+pub def testDropWhile(): Unit \ IO =
+    // dropWhile Returns the longest prefix of l whose elements satisfy the predicate f.
+    // TODO First property doesn't work ############################
+    def propDropWhile(xs: List[Int32]) = List.dropWhile(x -> x < 5, xs) == List.reverse(List.foldLeft((acc, x) -> if (x < 5) acc else x :: acc, List.empty(), xs));
+    def propDropWhile2(xs: List[Int32]) = List.length(List.dropWhile(x -> x < 0, xs)) <= List.length(xs); 
+    let propList = forAll(Arbitrary.arbitrary(), propDropWhile) :: forAll(Arbitrary.arbitrary(), propDropWhile2) :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
+pub def testT(): Unit \ IO =
+    let n = 2;
+    let xs = 1 :: Nil;
+    let foo = List.drop(n, xs);
+    let bar = List.foldRight((x, acc) -> if (n == 0) acc else x :: acc, List.empty(), xs);
+    println(foo);
+    println(bar)
+ 
+
+
 // empty
 // enumerator
 // exists
