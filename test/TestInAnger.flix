@@ -140,6 +140,7 @@ pub def testEmpty(): Unit \ IO =
 // enumerator
 // TODO ##########################
 //  Returns an iterator over l zipped with the indices of the elements.
+//
 // Implementation:
 // pub def enumerator(rc: Region[r], l: List[a]): Iterator[(Int32, a), r, r] \ r =
 //     iterator(rc, l) |> Iterator.zipWithIndex
@@ -165,9 +166,36 @@ pub def testExists(): Unit \ IO =
     foreach (prop <- propList) {
         flixCheck(prop)
     }
-// filter
 
+// filter
+pub def testFilter(): Unit \ IO =
+    // Property that checks if the filter function returns a list with only the elements that satisfy the predicate
+    def propFilter(xs: List[Int32]) = List.filter(x -> x == 0, xs) == List.foldLeft((acc, x) -> if (x == 0) x :: acc else acc, List.empty(), xs);
+    def propFilter2(xs: List[Char]) = List.filter(x -> x == 'a', xs) == List.foldLeft((acc, x) -> if (x == 'a') x :: acc else acc, List.empty(), xs);
+    def propFilter3(xs: List[Float64]) = List.filter(x -> x == 0.0, xs) == List.foldLeft((acc, x) -> if (x == 0.0) x :: acc else acc, List.empty(), xs);
+    def propFilter4(xs: List[String]) = List.filter(x -> x == "", xs) == List.foldLeft((acc, x) -> if (x == "") x :: acc else acc, List.empty(), xs);
+    def propFilter5(xs: List[Bool]) = List.filter(x -> x == true, xs) == List.foldLeft((acc, x) -> if (x == true) x :: acc else acc, List.empty(), xs);
+    def propFilter6(xs: List[Int32]) = List.length(List.filter(x -> x == 0, xs)) <= List.length(xs);
+    def propFilter7(xs: List[Char]) = List.length(List.filter(x -> x == 'a', xs)) <= List.length(xs);
+    def propFilter8(xs: List[Float64]) = List.length(List.filter(x -> x == 0.0, xs)) <= List.length(xs);
+    def propFilter9(xs: List[String]) = List.length(List.filter(x -> x == "", xs)) <= List.length(xs);
+    def propFilter10(xs: List[Bool]) = List.length(List.filter(x -> x == true, xs)) <= List.length(xs);
+    let propList = forAll(Arbitrary.arbitrary(), propFilter) :: 
+                    forAll(Arbitrary.arbitrary(), propFilter2) :: 
+                    forAll(Arbitrary.arbitrary(), propFilter3) :: 
+                    forAll(Arbitrary.arbitrary(), propFilter4) :: 
+                    forAll(Arbitrary.arbitrary(), propFilter5) ::
+                    forAll(Arbitrary.arbitrary(), propFilter6) ::
+                    forAll(Arbitrary.arbitrary(), propFilter7) ::
+                    forAll(Arbitrary.arbitrary(), propFilter8) ::
+                    forAll(Arbitrary.arbitrary(), propFilter9) ::
+                    forAll(Arbitrary.arbitrary(), propFilter10) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 // filterMap
+
 // find
 // findLeft
 // findMap
