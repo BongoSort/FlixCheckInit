@@ -102,7 +102,6 @@ pub def testDestinctWith():Unit \ IO =
 pub def testDrop(): Unit \ IO =
     // drop Returns l without the first n elements.
     def propDrop(n : Int32, xs: List[Int32]) = 
-    //Big thanks for not needing commas between the cases anymore!!
     match (n, List.length(xs)) {
             case (_, len) if n > len => List.drop(n, xs) == Nil
             case (_, _) if n < 0 => List.drop(n, xs) == xs
@@ -116,8 +115,12 @@ pub def testDrop(): Unit \ IO =
 // dropWhile
 pub def testDropWhile(): Unit \ IO =
     // dropWhile Returns the longest prefix of l whose elements satisfy the predicate f.
-    // TODO First property doesn't work ############################
-    def propDropWhile(xs: List[Int32]) = List.dropWhile(x -> x < 5, xs) == List.reverse(List.foldLeft((acc, x) -> if (x < 5) acc else x :: acc, List.empty(), xs));
+    def dropWhileTester(xs: List[Int32]): List[Int32] =
+        match xs {
+            case Nil => Nil
+            case h :: t => if (h < 5) dropWhileTester(t) else xs
+    };
+    def propDropWhile(xs: List[Int32]) = List.dropWhile(x -> x < 5, xs) == dropWhileTester(xs);
     def propDropWhile2(xs: List[Int32]) = List.length(List.dropWhile(x -> x < 0, xs)) <= List.length(xs); 
     let propList = forAll(Arbitrary.arbitrary(), propDropWhile) :: forAll(Arbitrary.arbitrary(), propDropWhile2) :: Nil;
     foreach (prop <- propList) {
@@ -125,16 +128,12 @@ pub def testDropWhile(): Unit \ IO =
     }
 
 pub def testT(): Unit \ IO =
-    let n = 2;
-    let xs = 1 :: Nil;
-    let foo = List.drop(n, xs);
-    let bar = List.foldRight((x, acc) -> if (n == 0) acc else x :: acc, List.empty(), xs);
-    println(foo);
-    println(bar)
- 
+    let l = 1 :: 6 :: 3 :: 1 :: Nil;
 
+    println(l)
 
 // empty
+
 // enumerator
 // exists
 // filter
