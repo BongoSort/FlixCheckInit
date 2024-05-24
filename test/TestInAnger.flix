@@ -145,9 +145,7 @@ pub def testEmpty(): Unit \ IO =
 // pub def enumerator(rc: Region[r], l: List[a]): Iterator[(Int32, a), r, r] \ r =
 //     iterator(rc, l) |> Iterator.zipWithIndex
 
-pub def testT(): Unit \ IO  =
-    let l = 1 :: 5 :: 3 :: 1 :: Nil;
-    println(l)
+
    
 
 // exists
@@ -175,11 +173,13 @@ pub def testFilter(): Unit \ IO =
     def propFilter3(xs: List[Float64]) = List.filter(x -> x == 0.0, xs) == List.foldLeft((acc, x) -> if (x == 0.0) x :: acc else acc, List.empty(), xs);
     def propFilter4(xs: List[String]) = List.filter(x -> x == "", xs) == List.foldLeft((acc, x) -> if (x == "") x :: acc else acc, List.empty(), xs);
     def propFilter5(xs: List[Bool]) = List.filter(x -> x == true, xs) == List.foldLeft((acc, x) -> if (x == true) x :: acc else acc, List.empty(), xs);
+
     def propFilter6(xs: List[Int32]) = List.length(List.filter(x -> x == 0, xs)) <= List.length(xs);
     def propFilter7(xs: List[Char]) = List.length(List.filter(x -> x == 'a', xs)) <= List.length(xs);
     def propFilter8(xs: List[Float64]) = List.length(List.filter(x -> x == 0.0, xs)) <= List.length(xs);
     def propFilter9(xs: List[String]) = List.length(List.filter(x -> x == "", xs)) <= List.length(xs);
     def propFilter10(xs: List[Bool]) = List.length(List.filter(x -> x == true, xs)) <= List.length(xs);
+
     let propList = forAll(Arbitrary.arbitrary(), propFilter) :: 
                     forAll(Arbitrary.arbitrary(), propFilter2) :: 
                     forAll(Arbitrary.arbitrary(), propFilter3) :: 
@@ -195,9 +195,71 @@ pub def testFilter(): Unit \ IO =
         flixCheck(prop)
     }
 // filterMap
+pub def testFilterMap(): Unit \ IO =
+    // Property that checks if the filterMap function returns a list with only the elements that satisfy the predicate
+    def propFilterMap(xs: List[Int32]) = List.filterMap(x -> if (x == 0) Some(x) else None, xs) == List.foldLeft((acc, x) -> if (x == 0) x :: acc else acc, List.empty(), xs);
+    def propFilterMap2(xs: List[Char]) = List.filterMap(x -> if (x == 'a') Some(x) else None, xs) == List.foldLeft((acc, x) -> if (x == 'a') x :: acc else acc, List.empty(), xs);
+    def propFilterMap3(xs: List[Float64]) = List.filterMap(x -> if (x == 0.0) Some(x) else None, xs) == List.foldLeft((acc, x) -> if (x == 0.0) x :: acc else acc, List.empty(), xs);
+    def propFilterMap4(xs: List[String]) = List.filterMap(x -> if (x == "") Some(x) else None, xs) == List.foldLeft((acc, x) -> if (x == "") x :: acc else acc, List.empty(), xs);
+    def propFilterMap5(xs: List[Bool]) = List.filterMap(x -> if (x == true) Some(x) else None, xs) == List.foldLeft((acc, x) -> if (x == true) x :: acc else acc, List.empty(), xs);
+
+    def propFilterMap6(xs: List[Int32]) = List.length(List.filterMap(x -> if (x == 0) Some(x) else None, xs)) <= List.length(xs);
+    def propFilterMap7(xs: List[Char]) = List.length(List.filterMap(x -> if (x == 'a') Some(x) else None, xs)) <= List.length(xs);
+    def propFilterMap8(xs: List[Float64]) = List.length(List.filterMap(x -> if (x == 0.0) Some(x) else None, xs)) <= List.length(xs);
+    def propFilterMap9(xs: List[String]) = List.length(List.filterMap(x -> if (x == "") Some(x) else None, xs)) <= List.length(xs);
+    def propFilterMap10(xs: List[Bool]) = List.length(List.filterMap(x -> if (x == true) Some(x) else None, xs)) <= List.length(xs);
+
+    let propList = forAll(Arbitrary.arbitrary(), propFilterMap) :: 
+                    forAll(Arbitrary.arbitrary(), propFilterMap2) :: 
+                    forAll(Arbitrary.arbitrary(), propFilterMap3) :: 
+                    forAll(Arbitrary.arbitrary(), propFilterMap4) :: 
+                    forAll(Arbitrary.arbitrary(), propFilterMap5) ::
+                    forAll(Arbitrary.arbitrary(), propFilterMap6) ::
+                    forAll(Arbitrary.arbitrary(), propFilterMap7) ::
+                    forAll(Arbitrary.arbitrary(), propFilterMap8) ::
+                    forAll(Arbitrary.arbitrary(), propFilterMap9) ::
+                    forAll(Arbitrary.arbitrary(), propFilterMap10) :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
+pub def testT(): Unit \ IO  =
+    let l = 1 :: 5 :: 3 :: 1 :: Nil;
+    let foo = List.filterMap(x -> if (x == 2) Some(true) else None, l);
+    let bar = List.foldLeft((acc, x) -> if (x == 5) true :: acc else acc, List.empty(), l);
+    println(foo);
+    println(bar)
 
 // find
-// findLeft
+// Alias for findLeft.
+pub def testFind(): Unit \ IO =
+    // Just check if the alias
+    def propFind(xs: List[Int32]) = List.find(x -> x == 0, xs) == List.findLeft(x -> x == 0, xs);
+    def propFind2(xs: List[Char]) = List.find(x -> x == 'a', xs) == List.findLeft(x -> x == 'a', xs);
+    def propFind3(xs: List[Float64]) = List.find(x -> x == 0.0, xs) == List.findLeft(x -> x == 0.0, xs);
+    def propFind4(xs: List[String]) = List.find(x -> x == "", xs) == List.findLeft(x -> x == "", xs);
+    def propFind5(xs: List[Bool]) = List.find(x -> x == true, xs) == List.findLeft(x -> x == true, xs);
+    let propList = forAll(Arbitrary.arbitrary(), propFind) :: 
+                    forAll(Arbitrary.arbitrary(), propFind2) :: 
+                    forAll(Arbitrary.arbitrary(), propFind3) :: 
+                    forAll(Arbitrary.arbitrary(), propFind4) :: 
+                    forAll(Arbitrary.arbitrary(), propFind5) :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
+// // findLeft
+// def findLeft(f: a -> Bool \ ef, l: List[a]): Option[a] \ ef
+// Source
+// Optionally returns the first element of l that satisfies the predicate f when searching from left to right.
+pub def testFindLeft(): Unit \ IO =
+    // Property that checks if the findLeft function returns the first element that satisfies the predicate
+    // Todo super træt
+
+
+
+
+
 // findMap
 // findRight
 // flatMap
