@@ -252,7 +252,7 @@ pub def testFind(): Unit \ IO =
 // def findLeft(f: a -> Bool \ ef, l: List[a]): Option[a] \ ef
 // Source
 // Optionally returns the first element of l that satisfies the predicate f when searching from left to right.
-pub def testFindLeft(): Unit \ IO =
+// pub def testFindLeft(): Unit \ IO =
     // Property that checks if the findLeft function returns the first element that satisfies the predicate
     // Todo super træt
 
