@@ -7,6 +7,11 @@ pub def runAllTests(): Unit \ IO =
     testDestinctWith();
     testDrop();
     testDropWhile();
+    testEmpty();
+    testExists();
+    testFilter();
+    testFilterMap();
+    testFind();
     testReverse()
 
 // ap
