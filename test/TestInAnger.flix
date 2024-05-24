@@ -127,16 +127,46 @@ pub def testDropWhile(): Unit \ IO =
         flixCheck(prop)
     }
 
-pub def testT(): Unit \ IO =
-    let l = 1 :: 6 :: 3 :: 1 :: Nil;
-
-    println(l)
-
 // empty
+pub def testEmpty(): Unit \ IO =
+    // Property that checks if the empty list is indeed empty
+    def propEmpty() = List.isEmpty(List.empty()) == true;
+    def propEmpty2() = List.length(List.empty()) == 0;
+    let propList = propEmpty() :: propEmpty2() :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 
 // enumerator
+// TODO ##########################
+//  Returns an iterator over l zipped with the indices of the elements.
+// Implementation:
+// pub def enumerator(rc: Region[r], l: List[a]): Iterator[(Int32, a), r, r] \ r =
+//     iterator(rc, l) |> Iterator.zipWithIndex
+
+pub def testT(): Unit \ IO  =
+    let l = 1 :: 5 :: 3 :: 1 :: Nil;
+    println(l)
+   
+
 // exists
+pub def testExists(): Unit \ IO =
+    // Property that checks if the exists function returns true if the predicate is true for at least one element
+    def propExists(xs: List[Int32]) = List.exists(x -> x == 0, xs) == List.foldLeft((acc, x) -> acc or x == 0, false, xs);
+    def propExists2(xs: List[Char]) = List.exists(x -> x == 'a', xs) == List.foldLeft((acc, x) -> acc or x == 'a', false, xs);
+    def propExists3(xs: List[Float64]) = List.exists(x -> x == 0.0, xs) == List.foldLeft((acc, x) -> acc or x == 0.0, false, xs);
+    def propExists4(xs: List[String]) = List.exists(x -> x == "", xs) == List.foldLeft((acc, x) -> acc or x == "", false, xs);
+    def propExists5(xs: List[Bool]) = List.exists(x -> x == true, xs) == List.foldLeft((acc, x) -> acc or x == true, false, xs);
+    let propList = forAll(Arbitrary.arbitrary(), propExists) :: 
+                    forAll(Arbitrary.arbitrary(), propExists2) :: 
+                    forAll(Arbitrary.arbitrary(), propExists3) :: 
+                    forAll(Arbitrary.arbitrary(), propExists4) :: 
+                    forAll(Arbitrary.arbitrary(), propExists5) :: Nil;
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 // filter
+
 // filterMap
 // find
 // findLeft
