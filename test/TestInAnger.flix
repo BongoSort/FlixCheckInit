@@ -161,7 +161,7 @@ pub def testDropWhile(): Unit \ IO =
                     forAll(Arbitrary.arbitrary(), propDropWhile4) :: 
                     forAll(Arbitrary.arbitrary(), propDropWhile5) :: 
                     forAll(Arbitrary.arbitrary(), propDropWhile6) :: Nil;
-                    
+
     foreach (prop <- propList) {
         flixCheck(prop)
     }
@@ -271,6 +271,7 @@ pub def testFind(): Unit \ IO =
     def propFind3(xs: List[Float64]) = List.find(x -> x == 0.0, xs) == List.findLeft(x -> x == 0.0, xs);
     def propFind4(xs: List[String]) = List.find(x -> x == "", xs) == List.findLeft(x -> x == "", xs);
     def propFind5(xs: List[Bool]) = List.find(x -> x == true, xs) == List.findLeft(x -> x == true, xs);
+
     let propList = forAll(Arbitrary.arbitrary(), propFind) :: 
                     forAll(Arbitrary.arbitrary(), propFind2) :: 
                     forAll(Arbitrary.arbitrary(), propFind3) :: 
@@ -362,9 +363,41 @@ pub def testFlatMap(): Unit \ IO =
     foreach (prop <- propList) {
         flixCheck(prop)
     }
+
 // flatten
+pub def testFlatten(): Unit \ IO =
+    // Property that checks if the flatten function returns the same result as mapping x to x and then flattening
+    def propFlatten(xs: List[List[Int32]]) = List.flatten(xs) == List.flatMap(x -> x, xs);
+    def propFlatten2(xs: List[List[Char]]) = List.flatten(xs) == List.flatMap(x -> x, xs);
+    def propFlatten3(xs: List[List[Float64]]) = List.flatten(xs) == List.flatMap(x -> x, xs);
+    def propFlatten4(xs: List[List[String]]) = List.flatten(xs) == List.flatMap(x -> x, xs);
+    def propFlatten5(xs: List[List[Bool]]) = List.flatten(xs) == List.flatMap(x -> x, xs);
+
+    let propList = forAll(Arbitrary.arbitrary(), propFlatten) :: 
+                    forAll(Arbitrary.arbitrary(), propFlatten2) :: 
+                    forAll(Arbitrary.arbitrary(), propFlatten3) :: 
+                    forAll(Arbitrary.arbitrary(), propFlatten4) :: 
+                    forAll(Arbitrary.arbitrary(), propFlatten5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 
 // fold
+pub def testFold(): Unit \ IO =
+    // Property that checks if the fold function returns the same result as the foldLeft function
+    def propFold(xs: List[Int32]) = List.fold(xs) == List.foldLeft((acc, x) -> acc + x, 0, xs);
+    def propFold2(xs: List[Float64]) = List.fold(xs) == List.foldLeft((acc, x) -> acc + x, 0.0, xs);
+    def propFold3(xs: List[String]) = List.fold(xs) == List.foldLeft((acc, x) -> acc + x, "", xs);
+    // Note, cannot fold over Bool or Char as they are not monoids, and not in the SemiGroup
+
+    let propList = forAll(Arbitrary.arbitrary(), propFold) :: 
+                    forAll(Arbitrary.arbitrary(), propFold2) :: 
+                    forAll(Arbitrary.arbitrary(), propFold3) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 // fold2
 // foldLeft
 // foldLeft2
