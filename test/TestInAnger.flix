@@ -275,6 +275,23 @@ pub def testT(): Unit \ IO  =
     // println(bar)
 
 // findMap
+pub def testFindMap(): Unit \ IO =
+    // Property that checks if the findMap function returns the first element that satisfies the predicate
+    def propFindMap(xs: List[Int32]) = List.findMap(x -> if (x == 0) Some(x) else None, xs) == List.head(List.filterMap(x -> if (x == 0) Some(x) else None, xs));
+    def propFindMap2(xs: List[Char]) = List.findMap(x -> if (x == 'a') Some(x) else None, xs) == List.head(List.filterMap(x -> if (x == 'a') Some(x) else None, xs));
+    def propFindMap3(xs: List[Float64]) = List.findMap(x -> if (x == 0.0) Some(x) else None, xs) == List.head(List.filterMap(x -> if (x == 0.0) Some(x) else None, xs));
+    def propFindMap4(xs: List[String]) = List.findMap(x -> if (x == "") Some(x) else None, xs) == List.head(List.filterMap(x -> if (x == "") Some(x) else None, xs));
+    def propFindMap5(xs: List[Bool]) = List.findMap(x -> if (x == true) Some(x) else None, xs) == List.head(List.filterMap(x -> if (x == true) Some(x) else None, xs));
+
+    let propList = forAll(Arbitrary.arbitrary(), propFindMap) :: 
+                    forAll(Arbitrary.arbitrary(), propFindMap2) :: 
+                    forAll(Arbitrary.arbitrary(), propFindMap3) :: 
+                    forAll(Arbitrary.arbitrary(), propFindMap4) :: 
+                    forAll(Arbitrary.arbitrary(), propFindMap5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 // findRight
 // flatMap
 // flatten
