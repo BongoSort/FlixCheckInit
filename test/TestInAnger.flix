@@ -106,7 +106,17 @@ pub def testDestinctWith():Unit \ IO =
     // The first occurrence of an element is kept and except for the removal of subsequent duplicates the order of l is preserved.
     // Property that checks if the distinct of a list is the same as the list with duplicates removed
     def propDistinctWith(xs: List[Int32]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    let propList = forAll(Arbitrary.arbitrary(), propDistinctWith) :: Nil;
+    def propDistinctWith2(xs: List[Char]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith3(xs: List[Float64]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith4(xs: List[String]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith5(xs: List[Bool]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+
+    let propList = forAll(Arbitrary.arbitrary(), propDistinctWith) :: 
+                    forAll(Arbitrary.arbitrary(), propDistinctWith2) :: 
+                    forAll(Arbitrary.arbitrary(), propDistinctWith3) :: 
+                    forAll(Arbitrary.arbitrary(), propDistinctWith4) :: 
+                    forAll(Arbitrary.arbitrary(), propDistinctWith5) :: Nil;
+
     foreach (prop <- propList) {
         flixCheck(prop)
     }
@@ -138,8 +148,20 @@ pub def testDropWhile(): Unit \ IO =
             case h :: t => if (h < 5) dropWhileTester(t) else xs
     };
     def propDropWhile(xs: List[Int32]) = List.dropWhile(x -> x < 5, xs) == dropWhileTester(xs);
-    def propDropWhile2(xs: List[Int32]) = List.length(List.dropWhile(x -> x < 0, xs)) <= List.length(xs); 
-    let propList = forAll(Arbitrary.arbitrary(), propDropWhile) :: forAll(Arbitrary.arbitrary(), propDropWhile2) :: Nil;
+    def propDropWhile2(xs: List[Int32]) = List.length(List.dropWhile(x -> x < 5, xs)) <= List.length(xs);
+    def propDropWhile3(xs: List[Char]) = List.length(List.dropWhile(x -> x < 'e', xs)) <= List.length(xs);
+    def propDropWhile4(xs: List[Float64]) = List.length(List.dropWhile(x -> x < 5.0, xs)) <= List.length(xs);
+    def propDropWhile5(xs: List[String]) = List.length(List.dropWhile(x -> x < "e", xs)) <= List.length(xs);
+    def propDropWhile6(xs: List[Bool]) = List.length(List.dropWhile(x -> x == true, xs)) <= List.length(xs);
+
+
+    let propList = forAll(Arbitrary.arbitrary(), propDropWhile) :: 
+                    forAll(Arbitrary.arbitrary(), propDropWhile2) :: 
+                    forAll(Arbitrary.arbitrary(), propDropWhile3) :: 
+                    forAll(Arbitrary.arbitrary(), propDropWhile4) :: 
+                    forAll(Arbitrary.arbitrary(), propDropWhile5) :: 
+                    forAll(Arbitrary.arbitrary(), propDropWhile6) :: Nil;
+                    
     foreach (prop <- propList) {
         flixCheck(prop)
     }
