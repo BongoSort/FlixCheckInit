@@ -300,15 +300,6 @@ pub def testFindLeft(): Unit \ IO =
         flixCheck(prop)
     }
 
-
-
-pub def testT(): Unit \ IO  =
-    let xs = 1 :: 5 :: 0 :: 1 :: Nil;
-    let foo = List.findLeft(x -> x == 0, xs);
-    // let bar = (Some(x) or None);
-    println(foo)
-    // println(bar)
-
 // findMap
 pub def testFindMap(): Unit \ IO =
     // Property that checks if the findMap function returns the first element that satisfies the predicate
@@ -399,8 +390,73 @@ pub def testFold(): Unit \ IO =
         flixCheck(prop)
     }
 // fold2
+// Alias for foldLeft2.
+pub def testFold2(): Unit \ IO =
+    // Property that checks if the fold2 function returns the same result as the foldLeft2 function
+    def propFold2(xs: List[Int32], ys: List[Int32]) = List.fold2((acc, x, y) -> acc + x + y, 0, xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys);
+    def propFold2_2(xs: List[Float64], ys: List[Float64]) = List.fold2((acc, x, y) -> acc + x + y, 0.0, xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, 0.0, xs, ys);
+    def propFold2_3(xs: List[String], ys: List[String]) = List.fold2((acc, x, y) -> acc + x + y, "", xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, "", xs, ys);
+
+    // Note, cannot add Bools, so we check if any is true
+    def propFold2_4(xs: List[Bool], ys: List[Bool]) = List.fold2((acc, x, y) -> acc or x or y, false, xs, ys) ==  List.foldLeft2((acc, x, y) -> acc or x or y, false, xs, ys);
+
+    // Cannot add Chars, so we check if the elements are different, and this should be the same as zipping the two lists and checking if any of the elements are different in that list
+    def propFold2_5(xs: List[Char], ys: List[Char]) = List.fold2((acc, x, y) -> if (x != y) acc else false, true, xs, ys) == 
+                                                                List.foldLeft2((acc, x, y) -> if (x != y) acc else false, true, xs, ys);
+
+    let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFold2) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFold2_2) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFold2_3) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFold2_4) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFold2_5) :: Nil;  
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
+
+    
+
 // foldLeft
+
 // foldLeft2
+pub def testFoldLeft2(): Unit \ IO =
+    // Property that checks if the foldLeft2 function returns the same result as zipping the two lists, and then using foldLeft on the zipped list 
+    def propFoldLeft2(xs: List[Int32], ys: List[Int32]) = List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0);
+    def propFoldLeft2_2(xs: List[Float64], ys: List[Float64]) = List.foldLeft2((acc, x, y) -> acc + x + y, 0.0, xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0.0);
+    def propFoldLeft2_3(xs: List[String], ys: List[String]) = List.foldLeft2((acc, x, y) -> acc + x + y, "", xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), "");
+
+    // Note, cannot add Bools, so we check if any is true
+    def propFoldLeft2_4(xs: List[Bool], ys: List[Bool]) = List.foldLeft2((acc, x, y) -> acc or x or y, false, xs, ys) ==  List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc or fst(x) or snd(x), false);
+
+    // Cannot add Chars, so we check if the elements are different, and this should be the same as zipping the two lists and checking if any of the elements are different in that list
+    def propFoldLeft2_5(xs: List[Char], ys: List[Char]) = List.foldLeft2((acc, x, y) -> if (x != y) acc else false, true, xs, ys) == 
+                                                                List.foldLeft((acc, x) -> if (fst(x) != snd(x)) acc else false, true, List.zip(xs, ys));
+    
+    let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldLeft2) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldLeft2_2) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldLeft2_3) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldLeft2_4) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldLeft2_5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
+pub def devTest(): Unit \ IO  =
+    let xs = 1 :: 3 :: 0 :: 1 :: Nil;
+    let ys = 4 :: 2 :: 2 :: Nil;
+
+    let foo = List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys);
+    // let bar = List.append(xs, ys);
+    // let bing = List.foldLeft((acc, x) -> acc + x, 0, bar);
+    // let zippy = List.zip(xs, ys);
+    // let zippy2 = List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0, zippy);
+
+    println(foo)
+
+
+   
 // foldMap
 // foldRight
 // foldRight2
