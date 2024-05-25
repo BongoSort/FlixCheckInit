@@ -228,17 +228,10 @@ pub def testFilterMap(): Unit \ IO =
         flixCheck(prop)
     }
 
-pub def testT(): Unit \ IO  =
-    let l = 1 :: 5 :: 3 :: 1 :: Nil;
-    let foo = List.filterMap(x -> if (x == 2) Some(true) else None, l);
-    let bar = List.foldLeft((acc, x) -> if (x == 5) true :: acc else acc, List.empty(), l);
-    println(foo);
-    println(bar)
-
 // find
 // Alias for findLeft.
 pub def testFind(): Unit \ IO =
-    // Just check if the alias
+    // Just check that find and findLeft are the same
     def propFind(xs: List[Int32]) = List.find(x -> x == 0, xs) == List.findLeft(x -> x == 0, xs);
     def propFind2(xs: List[Char]) = List.find(x -> x == 'a', xs) == List.findLeft(x -> x == 'a', xs);
     def propFind3(xs: List[Float64]) = List.find(x -> x == 0.0, xs) == List.findLeft(x -> x == 0.0, xs);
@@ -253,17 +246,33 @@ pub def testFind(): Unit \ IO =
         flixCheck(prop)
     }
 
-// // findLeft
-// def findLeft(f: a -> Bool \ ef, l: List[a]): Option[a] \ ef
-// Source
-// Optionally returns the first element of l that satisfies the predicate f when searching from left to right.
-// pub def testFindLeft(): Unit \ IO =
+// findLeft
+pub def testFindLeft(): Unit \ IO =
     // Property that checks if the findLeft function returns the first element that satisfies the predicate
-    // Todo super træt
+    def propFindLeft(xs: List[Int32]) = List.findLeft(x -> x == 0, xs) == List.head(List.filter(x -> x == 0, xs));
+    def propFindLeft2(xs: List[Char]) = List.findLeft(x -> x == 'a', xs) == List.head(List.filter(x -> x == 'a', xs));
+    def propFindLeft3(xs: List[Float64]) = List.findLeft(x -> x == 0.0, xs) == List.head(List.filter(x -> x == 0.0, xs));
+    def propFindLeft4(xs: List[String]) = List.findLeft(x -> x == "", xs) == List.head(List.filter(x -> x == "", xs));
+    def propFindLeft5(xs: List[Bool]) = List.findLeft(x -> x == true, xs) == List.head(List.filter(x -> x == true, xs));
+
+    let propList = forAll(Arbitrary.arbitrary(), propFindLeft) :: 
+                    forAll(Arbitrary.arbitrary(), propFindLeft2) :: 
+                    forAll(Arbitrary.arbitrary(), propFindLeft3) :: 
+                    forAll(Arbitrary.arbitrary(), propFindLeft4) :: 
+                    forAll(Arbitrary.arbitrary(), propFindLeft5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 
 
 
-
+pub def testT(): Unit \ IO  =
+    let xs = 1 :: 5 :: 0 :: 1 :: Nil;
+    let foo = List.findLeft(x -> x == 0, xs);
+    // let bar = (Some(x) or None);
+    println(foo)
+    // println(bar)
 
 // findMap
 // findRight
