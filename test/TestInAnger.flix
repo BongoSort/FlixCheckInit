@@ -16,7 +16,13 @@ pub def runAllTests(): Unit \ IO =
     testFindMap();
     testFindRight();
     testFlatMap();
+    testFlatten();
+    testFold();
+    testFold2();
+    testFoldLeft2();
+    
     testReverse()
+
 
 // ap
 pub def testAp(): Unit \ IO =
