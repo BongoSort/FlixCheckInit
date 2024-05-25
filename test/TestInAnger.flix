@@ -293,6 +293,23 @@ pub def testFindMap(): Unit \ IO =
         flixCheck(prop)
     }
 // findRight
+pub def testFindRight(): Unit \ IO =
+    // Property that checks if the findRight function returns the last element that satisfies the predicate
+    def propFindRight(xs: List[Int32]) = List.findRight(x -> x == 0, xs) == List.last(List.filter(x -> x == 0, xs));
+    def propFindRight2(xs: List[Char]) = List.findRight(x -> x == 'a', xs) == List.last(List.filter(x -> x == 'a', xs));
+    def propFindRight3(xs: List[Float64]) = List.findRight(x -> x == 0.0, xs) == List.last(List.filter(x -> x == 0.0, xs));
+    def propFindRight4(xs: List[String]) = List.findRight(x -> x == "", xs) == List.last(List.filter(x -> x == "", xs));
+    def propFindRight5(xs: List[Bool]) = List.findRight(x -> x == true, xs) == List.last(List.filter(x -> x == true, xs));
+
+    let propList = forAll(Arbitrary.arbitrary(), propFindRight) :: 
+                    forAll(Arbitrary.arbitrary(), propFindRight2) :: 
+                    forAll(Arbitrary.arbitrary(), propFindRight3) :: 
+                    forAll(Arbitrary.arbitrary(), propFindRight4) :: 
+                    forAll(Arbitrary.arbitrary(), propFindRight5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 // flatMap
 // flatten
 // fold
