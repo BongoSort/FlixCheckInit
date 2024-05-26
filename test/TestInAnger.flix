@@ -22,7 +22,9 @@ pub def runAllTests(): Unit \ IO =
     testFoldLeft();
     testFoldLeft2();
     testFoldMap();
-    
+    testFoldRight();
+    testFoldRight2();
+
     testReverse()
 
 // ap
@@ -520,20 +522,78 @@ pub def testFoldMap(): Unit \ IO =
     foreach (prop <- propList) {
         flixCheck(prop)
     }
-pub def devTest(): Unit \ IO  =
-    let xs = 1 :: 3 :: 0 :: 1 :: Nil;
-    let ys = 4 :: 2 :: 2 :: Nil;
 
-    let foo = List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys);
-    // let bar = List.append(xs, ys);
-    // let bing = List.foldLeft((acc, x) -> acc + x, 0, bar);
-    // let zippy = List.zip(xs, ys);
-    // let zippy2 = List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0, zippy);
-
-    println(foo)
 // foldRight
+pub def testFoldRight(): Unit \ IO =
+    // Property that checks if the foldRight function returns the same result as the foldLeft function when the list is reversed
+    def propFoldRight(xs: List[Int32]) =     List.foldRight((x, acc) -> x + acc, 0, xs) == List.foldLeft((acc, x) -> x + acc, 0, List.reverse(xs));
+    def propFoldRight2(xs: List[Float64]) =  List.foldRight((x, acc) -> x + acc, 0.0, xs) == List.foldLeft((acc, x) -> x + acc, 0.0, List.reverse(xs));
+    def propFoldRight3(xs: List[String]) =   List.foldRight((x, acc) -> x + acc, "", xs) == List.foldLeft((acc, x) -> x + acc, "", List.reverse(xs));
+    // Note, cannot add Bools, so we check if any is true
+    def propFoldRight4(xs: List[Bool]) =     List.foldRight((x, acc) -> x or acc, false, xs) == List.foldLeft((acc, x) -> x or acc, false, List.reverse(xs));
+    // Cannot add Chars, so we check if the elements are different, and this should be the same as zipping the two lists and checking if any of the elements are different in that list
+    def propFoldRight5(xs: List[Char]) =     List.foldRight((x, acc) -> if (x != acc) x else 'Z', 'A', xs) == List.foldLeft((acc, x) -> if (x != acc) x else 'Z', 'A', List.reverse(xs));
+
+    let propList = forAll(Arbitrary.arbitrary(), propFoldRight) :: 
+                    forAll(Arbitrary.arbitrary(), propFoldRight2) :: 
+                    forAll(Arbitrary.arbitrary(), propFoldRight3) :: 
+                    forAll(Arbitrary.arbitrary(), propFoldRight4) ::
+                    forAll(Arbitrary.arbitrary(), propFoldRight5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 // foldRight2
+pub def testFoldRight2(): Unit \ IO =
+    // Property that checks if the foldRight2 function returns the same result as the foldLeft2 function when the lists are reversed
+    def propFoldRight2(xs: List[Int32], ys: List[Int32]) =       List.foldRight2((x, y, acc) -> x + y + acc, 0, xs, ys) == List.foldLeft2((acc, x, y) -> x + y + acc, 0, List.reverse(xs), List.reverse(ys));
+    def propFoldRight2_2(xs: List[Float64], ys: List[Float64]) = List.foldRight2((x, y, acc) -> x + y + acc, 0.0, xs, ys) == List.foldLeft2((acc, x, y) -> x + y + acc, 0.0, List.reverse(xs), List.reverse(ys));
+    def propFoldRight2_3(xs: List[String], ys: List[String]) =   List.foldRight2((x, y, acc) -> x + y + acc, "", xs, ys) == List.foldLeft2((acc, x, y) -> x + y + acc, "", List.reverse(xs), List.reverse(ys));
+
+    // Note, cannot add Bools, so we check if any is true
+    def propFoldRight2_4(xs: List[Bool], ys: List[Bool]) =       List.foldRight2((x, y, acc) -> x or y or acc, false, xs, ys) ==  List.foldLeft2((acc, x, y) -> x or y or acc, false, List.reverse(xs), List.reverse(ys));
+
+    // Cannot add Chars, so we check if the elements are different, and this should be the same as zipping the two lists and checking if any of the elements are different in that list
+    def propFoldRight2_5(xs: List[Char], ys: List[Char]) =       List.foldRight2((x, y, acc) -> if (x != y) acc else false, true, xs, ys) == 
+                                                                List.foldLeft2((acc, x, y) -> if (x != y) acc else false, true, List.reverse(xs), List.reverse(ys));
+
+    let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldRight2) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldRight2_2) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldRight2_3) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldRight2_4) ::
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldRight2_5) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
+
 // foldRightWithCont
+    // ///
+    // /// Applies `f` to a start value `z` and all elements in `l` going from right to left.
+    // ///
+    // /// That is, the result is of the form: `f(x1, ...f(xn-1, f(xn, z))...)`.
+    // /// A `foldRightWithCont` allows early termination by not calling the continuation.
+    // ///
+    // pub def foldRightWithCont(f: (a, Unit -> b \ ef) -> b \ ef, z: b, l: List[a]): b \ ef = match l {
+    //     case Nil     => z
+    //     case x :: xs => f(x, _ -> foldRightWithCont(f, z, xs))
+//     // }
+// pub def testFoldRightWithCont(): Unit \ IO =
+// TODO, I have no clue to how to test this yet
+
+pub def devTest(): Unit \ IO  =
+
+    def sumWithEarlyTermination(x: Int32, cont: Unit -> Int32): Int32 =
+        if (x == 0) 0 else x + cont();
+    
+    def exampleUsage(): Int32 = {
+        let l = 1:: 2:: 3 :: 0 :: 4 :: 5 :: Nil;
+        let z = 0;
+        List.foldRightWithCont(sumWithEarlyTermination, z, l)
+    };
+    let foo = exampleUsage();
+    println(foo)
+   
 // forAll
 // forEach
 // forEachWithIndex
