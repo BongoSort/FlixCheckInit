@@ -19,21 +19,21 @@ pub def runAllTests(): Unit \ IO =
     testFlatten();
     testFold();
     testFold2();
+    testFoldLeft();
     testFoldLeft2();
-    
-    testReverse()
 
+    testReverse()
 
 // ap
 pub def testAp(): Unit \ IO =
     // Adding two lists element-wise in two different ways should give the same result
-    def propAp(xs: List[Int32], ys: List[Int32]) = List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
+    def propAp(xs: List[Int32], ys: List[Int32]) =      List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
     def propAp2(xs: List[Float64], ys: List[Float64]) = List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
     // Property for Bool is slightly different, as we can't add booleans
-    def propAp3(xs: List[Bool], ys: List[Bool]) = List.ap(List.map(x -> y -> x and y)(xs), ys) == List.flatMap(x -> List.map(y -> x and y)(ys))(xs);
-    def propAp4(xs: List[String], ys: List[String]) = List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
+    def propAp3(xs: List[Bool], ys: List[Bool]) =       List.ap(List.map(x -> y -> x and y)(xs), ys) == List.flatMap(x -> List.map(y -> x and y)(ys))(xs);
+    def propAp4(xs: List[String], ys: List[String]) =   List.ap(List.map(x -> y -> x + y)(xs), ys) == List.flatMap(x -> List.map(y -> x + y)(ys))(xs);
     // Property for Char is slightly different, as we can't add chars
-    def propAp5(xs: List[Char], ys: List[Char]) = List.ap(List.map(x -> y -> x == y)(xs), ys) == List.flatMap(x -> List.map(y -> x == y)(ys))(xs);
+    def propAp5(xs: List[Char], ys: List[Char]) =       List.ap(List.map(x -> y -> x == y)(xs), ys) == List.flatMap(x -> List.map(y -> x == y)(ys))(xs);
 
     let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp) :: 
                     forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAp2) :: 
@@ -47,22 +47,25 @@ pub def testAp(): Unit \ IO =
 // append
 pub def testAppend(): Unit \ IO =
     // Testing the ++ operator
-    def propAppend(xs: List[Int32], ys: List[Int32]) = List.append(xs, ys) == xs ++ ys;
+    def propAppend(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ++ ys;
     // Testing the infix operator
-    def propAppend2(xs: List[Int32], ys: List[Int32]) = List.append(xs, ys) == xs ::: ys;
+    def propAppend2(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == xs ::: ys;
     // Appending should give the same result as folding over the list with the append function
-    def propAppend3(xs: List[Int32], ys: List[Int32]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend3(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
     // testing with different types
-    def propAppend4(xs: List[Char], ys: List[Char]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend5(xs: List[String], ys: List[String]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend6(xs: List[Bool], ys: List[Bool]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend4(xs: List[Char], ys: List[Char]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend5(xs: List[String], ys: List[String]) =   List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppend6(xs: List[Bool], ys: List[Bool]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
     def propAppend7(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    // Slight bug/ inconvenience : we can only combine TFuncs of the same type.
+
+    // Slight inconvenience : we can only combine TFuncs of the same type.
     let propList : List[TFunc2[List[Int32], List[Int32], Bool]]= TFunc2.TFunc2(propAppend) :: TFunc2.TFunc2(propAppend2) :: TFunc2.TFunc2(propAppend3) :: Nil;
+
     let otherProps = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend4) :: 
                     forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend5) :: 
                     forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend6) :: 
                     forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend7) :: Nil;
+
     foreach (prop <- propList) {
         flixCheck(prop)
     };
@@ -73,11 +76,11 @@ pub def testAppend(): Unit \ IO =
 // count
 pub def testCount(): Unit \ IO =
     // Property that checks if the count of all elements in a list is the same as the length of the list
-    def propCount(xs: List[Bool]) = List.count(x -> x == x, xs) == List.length(xs);
-    def propCount2(xs: List[Char]) = List.count(x -> x == x, xs) == List.length(xs);
+    def propCount(xs: List[Bool]) =     List.count(x -> x == x, xs) == List.length(xs);
+    def propCount2(xs: List[Char]) =    List.count(x -> x == x, xs) == List.length(xs);
     def propCount3(xs: List[Float64]) = List.count(x -> x == x, xs) == List.length(xs);
-    def propCount4(xs: List[Int32]) = List.count(x -> x == x, xs) == List.length(xs);
-    def propCount5(xs: List[String]) = List.count(x -> x == x, xs) == List.length(xs);
+    def propCount4(xs: List[Int32]) =   List.count(x -> x == x, xs) == List.length(xs);
+    def propCount5(xs: List[String]) =  List.count(x -> x == x, xs) == List.length(xs);
 
     let propList: List[Property] = forAll(Arbitrary.arbitrary(), propCount) :: 
                     forAll(Arbitrary.arbitrary(), propCount2) :: 
@@ -91,11 +94,11 @@ pub def testCount(): Unit \ IO =
 // distinct
 pub def testDistinct(): Unit \ IO =
     // Property that checks if the distinct of a list is the same as the list with duplicates removed
-    def propDistinct(xs: List[Bool]) = List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinct2(xs: List[Char]) = List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinct3(xs: List[Float64]) = List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinct4(xs: List[Int32]) = List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinct5(xs: List[String]) = List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinct(xs: List[Bool]) =      List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinct2(xs: List[Char]) =     List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinct3(xs: List[Float64]) =  List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinct4(xs: List[Int32]) =    List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinct5(xs: List[String]) =   List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
 
     let propList = forAll(Arbitrary.arbitrary(), propDistinct) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct2) :: 
@@ -111,11 +114,11 @@ pub def testDestinctWith():Unit \ IO =
     // distinctWith Returns the list l with duplicates removed using the supplied function f for comparison. 
     // The first occurrence of an element is kept and except for the removal of subsequent duplicates the order of l is preserved.
     // Property that checks if the distinct of a list is the same as the list with duplicates removed
-    def propDistinctWith(xs: List[Int32]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinctWith2(xs: List[Char]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinctWith3(xs: List[Float64]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinctWith4(xs: List[String]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
-    def propDistinctWith5(xs: List[Bool]) = List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith(xs: List[Int32]) =     List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith2(xs: List[Char]) =     List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith3(xs: List[Float64]) =  List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith4(xs: List[String]) =   List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    def propDistinctWith5(xs: List[Bool]) =     List.distinctWith((x, y) -> x == y, xs) ==  List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
 
     let propList = forAll(Arbitrary.arbitrary(), propDistinctWith) :: 
                     forAll(Arbitrary.arbitrary(), propDistinctWith2) :: 
@@ -130,11 +133,11 @@ pub def testDestinctWith():Unit \ IO =
 // drop
 pub def testDrop(): Unit \ IO =
     // dropping n elements should be the same as taking the reverse of the list and taking the first n elements
-    def propDrop(n : Int32, xs:  List[Int32]) = List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
-    def propDrop2(n : Int32, xs:  List[Char]) = List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
-    def propDrop3(n : Int32, xs:  List[Float64]) = List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
-    def propDrop4(n : Int32, xs:  List[String]) = List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
-    def propDrop5(n : Int32, xs:  List[Bool]) = List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
+    def propDrop(n : Int32, xs:  List[Int32]) =     List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
+    def propDrop2(n : Int32, xs:  List[Char]) =     List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
+    def propDrop3(n : Int32, xs:  List[Float64]) =  List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
+    def propDrop4(n : Int32, xs:  List[String]) =   List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
+    def propDrop5(n : Int32, xs:  List[Bool]) =     List.drop(n, xs) == List.reverse(xs) |> List.take(List.length(xs)-n) |> List.reverse;
 
     let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propDrop) :: 
                     forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propDrop2) :: 
@@ -153,12 +156,12 @@ pub def testDropWhile(): Unit \ IO =
             case Nil => Nil
             case h :: t => if (h < 5) dropWhileTester(t) else xs
     };
-    def propDropWhile(xs: List[Int32]) = List.dropWhile(x -> x < 5, xs) == dropWhileTester(xs);
-    def propDropWhile2(xs: List[Int32]) = List.length(List.dropWhile(x -> x < 5, xs)) <= List.length(xs);
-    def propDropWhile3(xs: List[Char]) = List.length(List.dropWhile(x -> x < 'e', xs)) <= List.length(xs);
+    def propDropWhile(xs: List[Int32]) =    List.dropWhile(x -> x < 5, xs) == dropWhileTester(xs);
+    def propDropWhile2(xs: List[Int32]) =   List.length(List.dropWhile(x -> x < 5, xs)) <= List.length(xs);
+    def propDropWhile3(xs: List[Char]) =    List.length(List.dropWhile(x -> x < 'e', xs)) <= List.length(xs);
     def propDropWhile4(xs: List[Float64]) = List.length(List.dropWhile(x -> x < 5.0, xs)) <= List.length(xs);
-    def propDropWhile5(xs: List[String]) = List.length(List.dropWhile(x -> x < "e", xs)) <= List.length(xs);
-    def propDropWhile6(xs: List[Bool]) = List.length(List.dropWhile(x -> x == true, xs)) <= List.length(xs);
+    def propDropWhile5(xs: List[String]) =  List.length(List.dropWhile(x -> x < "e", xs)) <= List.length(xs);
+    def propDropWhile6(xs: List[Bool]) =    List.length(List.dropWhile(x -> x == true, xs)) <= List.length(xs);
 
 
     let propList = forAll(Arbitrary.arbitrary(), propDropWhile) :: 
@@ -175,9 +178,11 @@ pub def testDropWhile(): Unit \ IO =
 // empty
 pub def testEmpty(): Unit \ IO =
     // Property that checks if the empty list is indeed empty
-    def propEmpty() = List.isEmpty(List.empty()) == true;
-    def propEmpty2() = List.length(List.empty()) == 0;
+    def propEmpty() =   List.isEmpty(List.empty()) == true;
+    def propEmpty2() =  List.length(List.empty()) == 0;
+
     let propList = propEmpty() :: propEmpty2() :: Nil;
+
     foreach (prop <- propList) {
         flixCheck(prop)
     }
@@ -196,16 +201,18 @@ pub def testEmpty(): Unit \ IO =
 // exists
 pub def testExists(): Unit \ IO =
     // Property that checks if the exists function returns true if the predicate is true for at least one element
-    def propExists(xs: List[Int32]) = List.exists(x -> x == 0, xs) == List.foldLeft((acc, x) -> acc or x == 0, false, xs);
-    def propExists2(xs: List[Char]) = List.exists(x -> x == 'a', xs) == List.foldLeft((acc, x) -> acc or x == 'a', false, xs);
-    def propExists3(xs: List[Float64]) = List.exists(x -> x == 0.0, xs) == List.foldLeft((acc, x) -> acc or x == 0.0, false, xs);
-    def propExists4(xs: List[String]) = List.exists(x -> x == "", xs) == List.foldLeft((acc, x) -> acc or x == "", false, xs);
-    def propExists5(xs: List[Bool]) = List.exists(x -> x == true, xs) == List.foldLeft((acc, x) -> acc or x == true, false, xs);
+    def propExists(xs: List[Int32]) =       List.exists(x -> x == 0, xs) == List.foldLeft((acc, x) -> acc or x == 0, false, xs);
+    def propExists2(xs: List[Char]) =       List.exists(x -> x == 'a', xs) == List.foldLeft((acc, x) -> acc or x == 'a', false, xs);
+    def propExists3(xs: List[Float64]) =    List.exists(x -> x == 0.0, xs) == List.foldLeft((acc, x) -> acc or x == 0.0, false, xs);
+    def propExists4(xs: List[String]) =     List.exists(x -> x == "", xs) == List.foldLeft((acc, x) -> acc or x == "", false, xs);
+    def propExists5(xs: List[Bool]) =       List.exists(x -> x == true, xs) == List.foldLeft((acc, x) -> acc or x == true, false, xs);
+
     let propList = forAll(Arbitrary.arbitrary(), propExists) :: 
                     forAll(Arbitrary.arbitrary(), propExists2) :: 
                     forAll(Arbitrary.arbitrary(), propExists3) :: 
                     forAll(Arbitrary.arbitrary(), propExists4) :: 
                     forAll(Arbitrary.arbitrary(), propExists5) :: Nil;
+
     foreach (prop <- propList) {
         flixCheck(prop)
     }
@@ -213,17 +220,17 @@ pub def testExists(): Unit \ IO =
 // filter
 pub def testFilter(): Unit \ IO =
     // Property that checks if the filter function returns a list with only the elements that satisfy the predicate
-    def propFilter(xs: List[Int32]) = List.filter(x -> x == 0, xs) == List.foldLeft((acc, x) -> if (x == 0) x :: acc else acc, List.empty(), xs);
-    def propFilter2(xs: List[Char]) = List.filter(x -> x == 'a', xs) == List.foldLeft((acc, x) -> if (x == 'a') x :: acc else acc, List.empty(), xs);
+    def propFilter(xs: List[Int32]) =    List.filter(x -> x == 0, xs) == List.foldLeft((acc, x) -> if (x == 0) x :: acc else acc, List.empty(), xs);
+    def propFilter2(xs: List[Char]) =    List.filter(x -> x == 'a', xs) == List.foldLeft((acc, x) -> if (x == 'a') x :: acc else acc, List.empty(), xs);
     def propFilter3(xs: List[Float64]) = List.filter(x -> x == 0.0, xs) == List.foldLeft((acc, x) -> if (x == 0.0) x :: acc else acc, List.empty(), xs);
-    def propFilter4(xs: List[String]) = List.filter(x -> x == "", xs) == List.foldLeft((acc, x) -> if (x == "") x :: acc else acc, List.empty(), xs);
-    def propFilter5(xs: List[Bool]) = List.filter(x -> x == true, xs) == List.foldLeft((acc, x) -> if (x == true) x :: acc else acc, List.empty(), xs);
+    def propFilter4(xs: List[String]) =  List.filter(x -> x == "", xs) == List.foldLeft((acc, x) -> if (x == "") x :: acc else acc, List.empty(), xs);
+    def propFilter5(xs: List[Bool]) =    List.filter(x -> x == true, xs) == List.foldLeft((acc, x) -> if (x == true) x :: acc else acc, List.empty(), xs);
 
-    def propFilter6(xs: List[Int32]) = List.length(List.filter(x -> x == 0, xs)) <= List.length(xs);
-    def propFilter7(xs: List[Char]) = List.length(List.filter(x -> x == 'a', xs)) <= List.length(xs);
+    def propFilter6(xs: List[Int32]) =   List.length(List.filter(x -> x == 0, xs)) <= List.length(xs);
+    def propFilter7(xs: List[Char]) =    List.length(List.filter(x -> x == 'a', xs)) <= List.length(xs);
     def propFilter8(xs: List[Float64]) = List.length(List.filter(x -> x == 0.0, xs)) <= List.length(xs);
-    def propFilter9(xs: List[String]) = List.length(List.filter(x -> x == "", xs)) <= List.length(xs);
-    def propFilter10(xs: List[Bool]) = List.length(List.filter(x -> x == true, xs)) <= List.length(xs);
+    def propFilter9(xs: List[String]) =  List.length(List.filter(x -> x == "", xs)) <= List.length(xs);
+    def propFilter10(xs: List[Bool]) =   List.length(List.filter(x -> x == true, xs)) <= List.length(xs);
 
     let propList = forAll(Arbitrary.arbitrary(), propFilter) :: 
                     forAll(Arbitrary.arbitrary(), propFilter2) :: 
@@ -272,11 +279,11 @@ pub def testFilterMap(): Unit \ IO =
 // Alias for findLeft.
 pub def testFind(): Unit \ IO =
     // Just check that find and findLeft are the same
-    def propFind(xs: List[Int32]) = List.find(x -> x == 0, xs) == List.findLeft(x -> x == 0, xs);
-    def propFind2(xs: List[Char]) = List.find(x -> x == 'a', xs) == List.findLeft(x -> x == 'a', xs);
-    def propFind3(xs: List[Float64]) = List.find(x -> x == 0.0, xs) == List.findLeft(x -> x == 0.0, xs);
-    def propFind4(xs: List[String]) = List.find(x -> x == "", xs) == List.findLeft(x -> x == "", xs);
-    def propFind5(xs: List[Bool]) = List.find(x -> x == true, xs) == List.findLeft(x -> x == true, xs);
+    def propFind(xs: List[Int32]) =     List.find(x -> x == 0, xs) == List.findLeft(x -> x == 0, xs);
+    def propFind2(xs: List[Char]) =     List.find(x -> x == 'a', xs) == List.findLeft(x -> x == 'a', xs);
+    def propFind3(xs: List[Float64]) =  List.find(x -> x == 0.0, xs) == List.findLeft(x -> x == 0.0, xs);
+    def propFind4(xs: List[String]) =   List.find(x -> x == "", xs) == List.findLeft(x -> x == "", xs);
+    def propFind5(xs: List[Bool]) =     List.find(x -> x == true, xs) == List.findLeft(x -> x == true, xs);
 
     let propList = forAll(Arbitrary.arbitrary(), propFind) :: 
                     forAll(Arbitrary.arbitrary(), propFind2) :: 
@@ -290,11 +297,11 @@ pub def testFind(): Unit \ IO =
 // findLeft
 pub def testFindLeft(): Unit \ IO =
     // Property that checks if the findLeft function returns the first element that satisfies the predicate
-    def propFindLeft(xs: List[Int32]) = List.findLeft(x -> x == 0, xs) == List.filter(x -> x == 0, xs) |> List.head;
-    def propFindLeft2(xs: List[Char]) = List.findLeft(x -> x == 'a', xs) == List.filter(x -> x == 'a', xs) |> List.head;
-    def propFindLeft3(xs: List[Float64]) = List.findLeft(x -> x == 0.0, xs) == List.filter(x -> x == 0.0, xs) |> List.head;
-    def propFindLeft4(xs: List[String]) = List.findLeft(x -> x == "", xs) == List.filter(x -> x == "", xs) |> List.head;
-    def propFindLeft5(xs: List[Bool]) = List.findLeft(x -> x == true, xs) == List.filter(x -> x == true, xs) |> List.head;
+    def propFindLeft(xs: List[Int32]) =     List.findLeft(x -> x == 0, xs) == List.filter(x -> x == 0, xs) |> List.head;
+    def propFindLeft2(xs: List[Char]) =     List.findLeft(x -> x == 'a', xs) == List.filter(x -> x == 'a', xs) |> List.head;
+    def propFindLeft3(xs: List[Float64]) =  List.findLeft(x -> x == 0.0, xs) == List.filter(x -> x == 0.0, xs) |> List.head;
+    def propFindLeft4(xs: List[String]) =   List.findLeft(x -> x == "", xs) == List.filter(x -> x == "", xs) |> List.head;
+    def propFindLeft5(xs: List[Bool]) =     List.findLeft(x -> x == true, xs) == List.filter(x -> x == true, xs) |> List.head;
 
     let propList = forAll(Arbitrary.arbitrary(), propFindLeft) :: 
                     forAll(Arbitrary.arbitrary(), propFindLeft2) :: 
@@ -399,15 +406,15 @@ pub def testFold(): Unit \ IO =
 // Alias for foldLeft2.
 pub def testFold2(): Unit \ IO =
     // Property that checks if the fold2 function returns the same result as the foldLeft2 function
-    def propFold2(xs: List[Int32], ys: List[Int32]) = List.fold2((acc, x, y) -> acc + x + y, 0, xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys);
+    def propFold2(xs: List[Int32], ys: List[Int32]) =       List.fold2((acc, x, y) -> acc + x + y, 0, xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys);
     def propFold2_2(xs: List[Float64], ys: List[Float64]) = List.fold2((acc, x, y) -> acc + x + y, 0.0, xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, 0.0, xs, ys);
-    def propFold2_3(xs: List[String], ys: List[String]) = List.fold2((acc, x, y) -> acc + x + y, "", xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, "", xs, ys);
+    def propFold2_3(xs: List[String], ys: List[String]) =   List.fold2((acc, x, y) -> acc + x + y, "", xs, ys) == List.foldLeft2((acc, x, y) -> acc + x + y, "", xs, ys);
 
     // Note, cannot add Bools, so we check if any is true
-    def propFold2_4(xs: List[Bool], ys: List[Bool]) = List.fold2((acc, x, y) -> acc or x or y, false, xs, ys) ==  List.foldLeft2((acc, x, y) -> acc or x or y, false, xs, ys);
+    def propFold2_4(xs: List[Bool], ys: List[Bool]) =       List.fold2((acc, x, y) -> acc or x or y, false, xs, ys) ==  List.foldLeft2((acc, x, y) -> acc or x or y, false, xs, ys);
 
     // Cannot add Chars, so we check if the elements are different, and this should be the same as zipping the two lists and checking if any of the elements are different in that list
-    def propFold2_5(xs: List[Char], ys: List[Char]) = List.fold2((acc, x, y) -> if (x != y) acc else false, true, xs, ys) == 
+    def propFold2_5(xs: List[Char], ys: List[Char]) =       List.fold2((acc, x, y) -> if (x != y) acc else false, true, xs, ys) == 
                                                                 List.foldLeft2((acc, x, y) -> if (x != y) acc else false, true, xs, ys);
 
     let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFold2) ::
@@ -467,15 +474,15 @@ pub def testFoldLeft(): Unit \ IO =
 // foldLeft2
 pub def testFoldLeft2(): Unit \ IO =
     // Property that checks if the foldLeft2 function returns the same result as zipping the two lists, and then using foldLeft on the zipped list 
-    def propFoldLeft2(xs: List[Int32], ys: List[Int32]) = List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0);
+    def propFoldLeft2(xs: List[Int32], ys: List[Int32]) =       List.foldLeft2((acc, x, y) -> acc + x + y, 0, xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0);
     def propFoldLeft2_2(xs: List[Float64], ys: List[Float64]) = List.foldLeft2((acc, x, y) -> acc + x + y, 0.0, xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0.0);
-    def propFoldLeft2_3(xs: List[String], ys: List[String]) = List.foldLeft2((acc, x, y) -> acc + x + y, "", xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), "");
+    def propFoldLeft2_3(xs: List[String], ys: List[String]) =   List.foldLeft2((acc, x, y) -> acc + x + y, "", xs, ys) == List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc + fst(x) + snd(x), "");
 
     // Note, cannot add Bools, so we check if any is true
-    def propFoldLeft2_4(xs: List[Bool], ys: List[Bool]) = List.foldLeft2((acc, x, y) -> acc or x or y, false, xs, ys) ==  List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc or fst(x) or snd(x), false);
+    def propFoldLeft2_4(xs: List[Bool], ys: List[Bool]) =       List.foldLeft2((acc, x, y) -> acc or x or y, false, xs, ys) ==  List.zip(xs, ys) |> List.foldLeft((acc, x) -> acc or fst(x) or snd(x), false);
 
     // Cannot add Chars, so we check if the elements are different, and this should be the same as zipping the two lists and checking if any of the elements are different in that list
-    def propFoldLeft2_5(xs: List[Char], ys: List[Char]) = List.foldLeft2((acc, x, y) -> if (x != y) acc else false, true, xs, ys) == 
+    def propFoldLeft2_5(xs: List[Char], ys: List[Char]) =       List.foldLeft2((acc, x, y) -> if (x != y) acc else false, true, xs, ys) == 
                                                                 List.foldLeft((acc, x) -> if (fst(x) != snd(x)) acc else false, true, List.zip(xs, ys));
     
     let propList = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propFoldLeft2) :: 
