@@ -21,7 +21,8 @@ pub def runAllTests(): Unit \ IO =
     testFold2();
     testFoldLeft();
     testFoldLeft2();
-
+    testFoldMap();
+    
     testReverse()
 
 // ap
@@ -429,7 +430,7 @@ pub def testFold2(): Unit \ IO =
 
 // foldLeft
 pub def testFoldLeft(): Unit \ IO =
-    // Property that checks if the foldLeft function returns the same result when applying foldleft to only to the tail of the list, and adding the head
+    // Property that checks if the foldLeft function returns the same result when applying foldleft to only to the tail of the list, while seperately evaluating the head
     def propFoldLeft(xs: List[Int32]) = 
         match xs {
             case Nil        => List.foldLeft((acc, x) -> acc + x, 0, xs) == 0
@@ -495,6 +496,30 @@ pub def testFoldLeft2(): Unit \ IO =
         flixCheck(prop)
     }
 
+// foldMap
+pub def testFoldMap(): Unit \ IO =
+    // Property that checks if the foldMap function returns the same result as mapping and then folding
+    def propFoldMap(xs: List[Int32]) =      List.foldMap(x -> x + 1, xs) == List.map(x -> x + 1, xs) |> List.foldLeft((acc, x) -> acc + x, 0);
+    def propFoldMap2(xs: List[Float64]) =   List.foldMap(x -> x + 1.0, xs) == List.map(x -> x + 1.0, xs) |> List.foldLeft((acc, x) -> acc + x, 0.0);
+    def propFoldMap3(xs: List[String]) =    List.foldMap(x -> x + "a", xs) == List.map(x -> x + "a", xs) |> List.foldLeft((acc, x) -> acc + x, "");
+    // mapping all true to 1 and false to 0, then summing should be the same as counting the number of true
+    def propFoldMap4(xs: List[Bool]) =      List.foldMap(x -> if (x == true) 1 else 0, xs) == List.map(x -> if (x == true) 1 else 0, xs) |> List.foldLeft((acc, x) -> acc + x, 0);    
+    use Char.{isLowerCase, isUpperCase};
+    // Counts the number of lower case characters in the list 
+    def propFoldMap5(xs: List[Char]) =      List.foldMap(x -> if (Char.isLowerCase(x)) 1 else 0, xs) == List.map(x -> if (Char.isLowerCase(x)) 1 else 0, xs) |> List.foldLeft((acc, x) -> acc + x, 0);
+    // Counts the number of upper case characters in the list 
+    def propFoldMap6(xs: List[Char]) =      List.foldMap(x -> if (Char.isUpperCase(x)) 1 else 0, xs) == List.map(x -> if (Char.isUpperCase(x)) 1 else 0, xs) |> List.foldLeft((acc, x) -> acc + x, 0);
+
+    let propList = forAll(Arbitrary.arbitrary(), propFoldMap) :: 
+                    forAll(Arbitrary.arbitrary(), propFoldMap2) :: 
+                    forAll(Arbitrary.arbitrary(), propFoldMap3) :: 
+                    forAll(Arbitrary.arbitrary(), propFoldMap4) ::
+                    forAll(Arbitrary.arbitrary(), propFoldMap5) ::
+                    forAll(Arbitrary.arbitrary(), propFoldMap6) :: Nil;
+
+    foreach (prop <- propList) {
+        flixCheck(prop)
+    }
 pub def devTest(): Unit \ IO  =
     let xs = 1 :: 3 :: 0 :: 1 :: Nil;
     let ys = 4 :: 2 :: 2 :: Nil;
@@ -506,8 +531,6 @@ pub def devTest(): Unit \ IO  =
     // let zippy2 = List.foldLeft((acc, x) -> acc + fst(x) + snd(x), 0, zippy);
 
     println(foo)
-
-// foldMap
 // foldRight
 // foldRight2
 // foldRightWithCont
