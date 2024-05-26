@@ -138,3 +138,8 @@ def testInsertOrdered2(): Unit \ IO =
     let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
     def propInsertOrdered(e: Int32, xs: List[Int32]) = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
     flixCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
+
+
+def testModuloBiggerThan(): Unit \ IO =
+    def propModulo(x: Int32, y: Int32) = implies(y > x and y > 1 and x > 1, Int32.modulo(x, y) == x);
+    verboseCheck(TFunc2.TFunc2(propModulo))
