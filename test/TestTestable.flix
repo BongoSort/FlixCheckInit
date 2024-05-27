@@ -1,4 +1,3 @@
-use Gen.{chooseInt, Arbitrary, Gen, sizedListOf, orderedListOf, sized, vector, oneOf}
 use Monad.{>>=}
 
 def sizeConfig(): Unit \ IO =
@@ -15,7 +14,7 @@ def shouldFail(): Unit \ IO =
     //verboseCheck(prop)
     check(verbose(), prop)
 
-def testReverse(): Unit \ IO =
+def testReverse2(): Unit \ IO =
     // Property that checks if the reverse of a list is the same as the original list
     def propRevRev(xs: List[Char]) = List.reverse(List.reverse(xs)) == xs;
     // Property that checks if the reverse of a single element list is the same as the original list

@@ -20,13 +20,6 @@ type alias Config = {
     every = Int32 -> List[String] -> String,
     initSeed = Option[Int64]
 }
-/// Generates the test arguments for the test
-pub def generate(size: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
-    match gen {
-        case Gen.Gen(g) => 
-            let (r1, _) = split(rand);
-            g(size, r1)  
-    }
 
 /// A default setting for the config
 ///
@@ -51,6 +44,14 @@ pub def createConfig(maxTest: Int32, maxFail: Int32, size: Int32 -> Int32, every
     every = every,
     initSeed = initSeed
 }
+
+/// Generates the test arguments for the test
+pub def generate(size: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
+    match gen {
+        case Gen.Gen(g) => 
+            let (r1, _) = split(rand);
+            g(size, r1)  
+    }
 
 /// A verbose version of the default config, prints more detailed information about the tests
 pub def verbose(): Config = 

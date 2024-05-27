@@ -1,4 +1,3 @@
-use Gen.{Gen, Arbitrary, return}
 use Functor.{map}
 
 /// A result of testing a property
