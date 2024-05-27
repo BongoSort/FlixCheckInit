@@ -88,9 +88,9 @@ pub def checkWithSeed(config: Config, x: a, seed: Int64): Unit \ IO with Testabl
 /// 
 pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
     if (nTest == config.maxTest) {
-        done("OK, passed", nTest, stamps)
+        done("OK, passed", nTest, nFail, stamps)
     } else if (nFail == config.maxFail) {
-        done("Arguments exhausted after", nTest, stamps)
+        done("Arguments exhausted after passing", nTest, nFail, stamps)
     } else {
         let (r1, r2) = split(rng);
         let result = generate(config.size(nTest), r2, gen);
@@ -103,12 +103,11 @@ pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: I
             case Some(false) =>
                 System.StdOut.print(config.every(nTest, result.arguments));
                 if (result.arguments == Nil) {
-                    println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + "No arguments.");
-                    printSeed(config.initSeed)
+                    println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + "No arguments.")
                 } else {
-                    println("Falsifiable after " + "${nTest + 1}" + " test(s) with argument(s):\n" + String.intercalate("\n", result.arguments));
-                    printSeed(config.initSeed)
-                }
+                    println("Falsifiable after " + "${nTest + 1}" + " test(s) with argument(s):\n" + String.intercalate("\n", result.arguments))
+                };
+                printSeed(config.initSeed)
         }
     }
 
@@ -120,7 +119,7 @@ pub def printSeed(seed: Option[Int64]): Unit \ IO =
     }
 
 /// Prints the result of the test
-pub def done(msg: String, nTest: Int32, stamps: List[List[String]]): Unit \ IO = 
+pub def done(msg: String, nTest: Int32, nFail: Int32, stamps: List[List[String]]): Unit \ IO = 
     // Helper functions
     // percentage calculates the distribution of the numbers used in the tests 
     def percentage(n: Int32, m: Int32): String =
@@ -142,7 +141,7 @@ pub def done(msg: String, nTest: Int32, stamps: List[List[String]]): Unit \ IO =
         List.map(entry) |>
         display
     );
-    println(msg + " " + "${nTest}" + " tests" + table)
+    println(msg + " " + "${nTest}" + " tests. " + "${nFail} tests discarded" + table)
 
 /// Defines how the test results are displayed
 pub def display(l: List[String]): String =
