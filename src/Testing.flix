@@ -94,13 +94,14 @@ pub def tests(config: Config, gen: Gen[TResult], rng: SplittableRandom, nTest: I
     } else {
         let (r1, r2) = split(rng);
         let result = generate(config.size(nTest), r2, gen);
-        System.StdOut.print(config.every(nTest, result.arguments));
         match result.ok {
             case None =>
                 tests(config, gen, r1, nTest, (nFail + 1), stamps)
             case Some(true) =>
+                System.StdOut.print(config.every(nTest, result.arguments));
                 tests(config, gen, r1, (nTest + 1), nFail, (result.stamp :: stamps))
             case Some(false) =>
+                System.StdOut.print(config.every(nTest, result.arguments));
                 if (result.arguments == Nil) {
                     println("Falsifiable after " + "${nTest + 1}" + " test(s):\n" + "No arguments.");
                     printSeed(config.initSeed)
