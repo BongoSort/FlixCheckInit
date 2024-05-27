@@ -50,24 +50,24 @@ pub def testAp(): Unit \ IO =
 // append
 pub def testAppend(): Unit \ IO =
     // Testing the ++ operator
-    def propAppend(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ++ ys;
+    def propAppendInt1(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ++ ys;
     // Testing the infix operator
-    def propAppend2(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == xs ::: ys;
+    def propAppendInt2(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == xs ::: ys;
     // Appending should give the same result as folding over the list with the append function
-    def propAppend3(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendInt3(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
     // testing with different types
-    def propAppend4(xs: List[Char], ys: List[Char]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend5(xs: List[String], ys: List[String]) =   List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend6(xs: List[Bool], ys: List[Bool]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend7(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendChar(xs: List[Char], ys: List[Char]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendString(xs: List[String], ys: List[String]) =   List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendBool(xs: List[Bool], ys: List[Bool]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendFloat(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
 
     // Slight inconvenience : we can only combine TFuncs of the same type.
-    let propList : List[TFunc2[List[Int32], List[Int32], Bool]]= TFunc2.TFunc2(propAppend) :: TFunc2.TFunc2(propAppend2) :: TFunc2.TFunc2(propAppend3) :: Nil;
+    let propList : List[TFunc2[List[Int32], List[Int32], Bool]]= TFunc2.TFunc2(propAppendInt1) :: TFunc2.TFunc2(propAppendInt2) :: TFunc2.TFunc2(propAppendInt3) :: Nil;
 
-    let otherProps = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend4) :: 
-                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend5) :: 
-                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend6) :: 
-                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend7) :: Nil;
+    let otherProps = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendChar) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendString) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendBool) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendFloat) :: Nil;
 
     foreach (prop <- propList) {
         flixCheck(prop)
