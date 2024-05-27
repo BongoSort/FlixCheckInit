@@ -213,13 +213,13 @@ mod Gen {
     pub trait Arbitrary[a] {
         type Elm[a]: Type
         type Aef: Eff
-        pub def arbitrary(): Gen[a, r]
+        pub def arbitrary(): Gen[a, r] \ Arbitrary.Aef[a]
     }
 
     /// Arbitrary instance for the unit type.
     instance Arbitrary[Unit] {
         type Elm[Unit] = Unit
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Unit, r] =
             Applicative.point()
     }
@@ -227,7 +227,7 @@ mod Gen {
     /// Arbitrary instance for the Int32 type.
     instance Arbitrary[Int32] {
         type Elm[Int32] = Int32
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Int32, r] =
             sized(size -> chooseInt(-size, size))
     }
@@ -235,7 +235,7 @@ mod Gen {
     /// Arbitrary instance for the Bool type.
     instance Arbitrary[Bool] {
         type Elm[Bool] = Bool
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Bool, r] =
             chooseBool()
     }
@@ -243,7 +243,7 @@ mod Gen {
     /// Arbitrary instance for the Char type.
     instance Arbitrary[Char] {
         type Elm[Char] = Char
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Char, r] = 
             chooseUpperChar()
     }
@@ -251,7 +251,7 @@ mod Gen {
     /// Arbitrary instance for the Float64 type.
     instance Arbitrary[Float64] {
         type Elm[Float64] = Float64
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Float64, r] = 
             sized(size -> chooseFloat(Int32.toFloat64(-size), Int32.toFloat64(size)))
     }
@@ -259,7 +259,7 @@ mod Gen {
     /// Arbitrary instance for the String type.
     instance Arbitrary[String] {
         type Elm[String] = String
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[String, r] =
             sized(size ->
                 chooseInt(0, size) >>= (x -> chooseString(x, chooseLowerChar()))
@@ -269,7 +269,7 @@ mod Gen {
     /// Arbitrary instance for tuples
     instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
         type Elm[(a, b)] = (a, b)
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[(a, b), r] =
             map2((x, y) -> (x, y), Arbitrary.arbitrary(), Arbitrary.arbitrary())
     }
@@ -277,7 +277,7 @@ mod Gen {
     /// Arbitrary instance for triples
     instance Arbitrary[(a, b, c)] with Arbitrary[a], Arbitrary[b], Arbitrary[c] {
         type Elm[(a, b, c)] = (a, b, c)
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[(a, b, c), r] =
             map3((x, y, z) -> (x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
     }
@@ -285,7 +285,7 @@ mod Gen {
     /// Arbitrary instance for quadruples
     instance Arbitrary[(a, b, c, d)] with Arbitrary[a], Arbitrary[b], Arbitrary[c], Arbitrary[d] {
         type Elm[(a, b, c, d)] = (a, b, c, d)
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[(a, b, c, d), r] =
             map4((w, x, y, z) -> (w, x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
     }
@@ -293,7 +293,7 @@ mod Gen {
     /// Arbitrary instance for for the List type.
     instance Arbitrary[List[a]] with Arbitrary[a] {
         type Elm[List[a]] = List[a]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[List[a], r] =
             sized(size ->
                 chooseInt(0, size) >>= vector
@@ -303,7 +303,7 @@ mod Gen {
     /// Arbitrary instance for the Non Empty List (Nel) type.
     instance Arbitrary[Nel[a]] with Arbitrary[a] {
         type Elm[Nel[a]] = Nel[a]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Nel[a], r] =
             sized(size ->
                 map2((x, xs) -> Nel.Nel(x, xs), Arbitrary.arbitrary(), vector(size - 1))
@@ -313,7 +313,7 @@ mod Gen {
     /// Arbitrary instance for the Chain type.
     instance Arbitrary[Chain[a]] with Arbitrary[a] {
         type Elm[Chain[a]] = Chain[a]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Chain[a], r] =
             sized(size ->
                 Functor.map(List.toChain, vector(size))
@@ -323,7 +323,7 @@ mod Gen {
     /// Arbitrary instance for the Non Empty Chain (Nec) type.
     instance Arbitrary[Nec[a]] with Arbitrary[a] {
         type Elm[Nec[a]] = Nec[a]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Nec[a], r] =
             let func = (x, xs) -> 
                 match List.toNec(xs) {
@@ -336,7 +336,7 @@ mod Gen {
     /// Arbitrary instance for the Vector type.
     instance Arbitrary[Vector[a]] with Arbitrary[a] {
         type Elm[Vector[a]] = Vector[a]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Vector[a], r] =
             sized(size -> 
                 Functor.map(List.toVector, vector(size))
@@ -346,7 +346,7 @@ mod Gen {
     /// Arbitrary instance for the Option type.
     instance Arbitrary[Option[a]] with Arbitrary[a] {
         type Elm[Option[a]] = Option[a]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Option[a], r] = 
             let func = (bool, arb) ->
                 match bool {
@@ -359,7 +359,7 @@ mod Gen {
     /// Arbitrary instance for the Result type.
     instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
         type Elm[Result[e, t]] = Result[e, t]
-        type Aef = {Pure}
+        type Aef = {}
         pub def arbitrary(): Gen[Result[e, t], r] =
             let func = (bool, eGen, tGen) ->
                 match bool {
@@ -371,13 +371,13 @@ mod Gen {
 
     // pub enum RegionedArray[a]
 
-    // instance Arbitrary[Array[a, r]] with Arbitrary[a] {
-    //     type Elm[Array[a, r]] = Array[a, r]
-    //     type Aef = {r}
-    //     pub def arbitrary(): Gen[Array[a, r], r] =
-    //         Gen.Gen(_ -> rc -> _ -> 
-    //                 Array.empty(rc, 5)
-    //         )
+    instance Arbitrary[Array[a, r]] with Arbitrary[a] {
+        type Elm[Array[a, r]] = Array[a, r]
+        type Aef = {r}
+        pub def arbitrary(): Gen[Array[a, r], r] =
+            Gen.Gen(_ -> rc -> _ -> 
+                    Array.empty(rc, 5)
+            )
 
-    // }
+    }
 }

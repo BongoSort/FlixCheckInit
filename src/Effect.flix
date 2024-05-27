@@ -15,7 +15,7 @@ pub enum Void1 {
 }
 
 instance Dividable[Float32] {
-    type Aef = {Pure}
+    type Aef = {}
     pub def div(x: Float32, y: Float32): Float32 = x / y
 }
 
