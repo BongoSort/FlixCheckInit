@@ -52,13 +52,13 @@ pub def testAppend(): Unit \ IO =
     // Testing the ++ operator
     def propAppendInt1(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ++ ys;
     // Testing the infix operator
-    def propAppendInt2(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == xs ::: ys;
+    def propAppendInt2(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ::: ys;
     // Appending should give the same result as folding over the list with the append function
-    def propAppendInt3(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendInt3(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
     // testing with different types
-    def propAppendChar(xs: List[Char], ys: List[Char]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppendString(xs: List[String], ys: List[String]) =   List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppendBool(xs: List[Bool], ys: List[Bool]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendChar(xs: List[Char], ys: List[Char]) =        List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendString(xs: List[String], ys: List[String]) =  List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendBool(xs: List[Bool], ys: List[Bool]) =        List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
     def propAppendFloat(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
 
     // Slight inconvenience : we can only combine TFuncs of the same type.
