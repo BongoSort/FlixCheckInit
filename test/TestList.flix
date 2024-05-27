@@ -102,12 +102,24 @@ pub def testDistinct(): Unit \ IO =
     def propDistinct3(xs: List[Float64]) =  List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
     def propDistinct4(xs: List[Int32]) =    List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
     def propDistinct5(xs: List[String]) =   List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    // property that checks if the distinct of a list is the same as the the distinct of a list twice
+    def propDistinct6(xs: List[Bool]) =     List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct7(xs: List[Char]) =     List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct8(xs: List[Float64]) =  List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct9(xs: List[Int32]) =    List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct10(xs: List[String]) =  List.distinct(xs) == List.distinct(xs) |> List.distinct;
 
     let propList = forAll(Arbitrary.arbitrary(), propDistinct) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct2) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct3) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct4) :: 
-                    forAll(Arbitrary.arbitrary(), propDistinct5) :: Nil;
+                    forAll(Arbitrary.arbitrary(), propDistinct5) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct6) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct7) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct8) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct9) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct10) :: Nil;
+
     foreach (prop <- propList) {
         flixCheck(prop)
     }
