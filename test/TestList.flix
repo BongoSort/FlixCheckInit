@@ -50,24 +50,24 @@ pub def testAp(): Unit \ IO =
 // append
 pub def testAppend(): Unit \ IO =
     // Testing the ++ operator
-    def propAppend(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ++ ys;
+    def propAppendInt1(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ++ ys;
     // Testing the infix operator
-    def propAppend2(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == xs ::: ys;
+    def propAppendInt2(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == xs ::: ys;
     // Appending should give the same result as folding over the list with the append function
-    def propAppend3(xs: List[Int32], ys: List[Int32]) =     List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendInt3(xs: List[Int32], ys: List[Int32]) =      List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
     // testing with different types
-    def propAppend4(xs: List[Char], ys: List[Char]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend5(xs: List[String], ys: List[String]) =   List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend6(xs: List[Bool], ys: List[Bool]) =       List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
-    def propAppend7(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendChar(xs: List[Char], ys: List[Char]) =        List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendString(xs: List[String], ys: List[String]) =  List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendBool(xs: List[Bool], ys: List[Bool]) =        List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
+    def propAppendFloat(xs: List[Float64], ys: List[Float64]) = List.append(xs, ys) == List.foldLeft((acc, x) -> List.append(acc, List.point(x)), List.empty(), xs ++ ys);
 
     // Slight inconvenience : we can only combine TFuncs of the same type.
-    let propList : List[TFunc2[List[Int32], List[Int32], Bool]]= TFunc2.TFunc2(propAppend) :: TFunc2.TFunc2(propAppend2) :: TFunc2.TFunc2(propAppend3) :: Nil;
+    let propList : List[TFunc2[List[Int32], List[Int32], Bool]]= TFunc2.TFunc2(propAppendInt1) :: TFunc2.TFunc2(propAppendInt2) :: TFunc2.TFunc2(propAppendInt3) :: Nil;
 
-    let otherProps = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend4) :: 
-                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend5) :: 
-                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend6) :: 
-                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppend7) :: Nil;
+    let otherProps = forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendChar) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendString) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendBool) :: 
+                    forAll2(Arbitrary.arbitrary(), Arbitrary.arbitrary(), propAppendFloat) :: Nil;
 
     foreach (prop <- propList) {
         flixCheck(prop)
@@ -102,12 +102,24 @@ pub def testDistinct(): Unit \ IO =
     def propDistinct3(xs: List[Float64]) =  List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
     def propDistinct4(xs: List[Int32]) =    List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
     def propDistinct5(xs: List[String]) =   List.distinct(xs) == List.foldLeft((acc, x) -> if (List.memberOf(x, acc)) acc else x :: acc, List.empty(), xs) |> List.reverse;
+    // property that checks if the distinct of a list is the same as the the distinct of a list twice
+    def propDistinct6(xs: List[Bool]) =     List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct7(xs: List[Char]) =     List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct8(xs: List[Float64]) =  List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct9(xs: List[Int32]) =    List.distinct(xs) == List.distinct(xs) |> List.distinct;
+    def propDistinct10(xs: List[String]) =  List.distinct(xs) == List.distinct(xs) |> List.distinct;
 
     let propList = forAll(Arbitrary.arbitrary(), propDistinct) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct2) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct3) :: 
                     forAll(Arbitrary.arbitrary(), propDistinct4) :: 
-                    forAll(Arbitrary.arbitrary(), propDistinct5) :: Nil;
+                    forAll(Arbitrary.arbitrary(), propDistinct5) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct6) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct7) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct8) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct9) ::
+                    forAll(Arbitrary.arbitrary(), propDistinct10) :: Nil;
+
     foreach (prop <- propList) {
         flixCheck(prop)
     }
