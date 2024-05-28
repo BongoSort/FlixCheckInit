@@ -108,8 +108,8 @@ mod Gen {
     /// Returns a generator that generates a list of values of type `a` of length `n`.
     ///
     /// `n` is the length of the list.
-    pub def vector(length: Int32, rc: Region[r]): Gen[List[a], r] with Arbitrary[a] =
-        let gens: List[Gen[a, r]] = List.map(_ -> Arbitrary.arbitrary(rc), List.range(0, length));
+    pub def vector(length: Int32): Gen[List[a], r] with Arbitrary[a] =
+        let gens: List[Gen[a, r]] = List.map(_ -> Arbitrary.arbitrary(), List.range(0, length));
         sequence(gens)
 
     /// Returns a generator that generates a list of length `length` with values of type `a`.
@@ -210,8 +210,7 @@ mod Gen {
 
     /// Arbitrary trait 
     pub trait Arbitrary[a] {
-        type Aef: Eff
-        pub def arbitrary(rc: Region[r]): Gen[a, r] \ Arbitrary.Aef[a]
+        pub def arbitrary(): Gen[a, r]
     }
 
     // /// Arbitrary instance for the unit type.
@@ -222,8 +221,7 @@ mod Gen {
 
     /// Arbitrary instance for the Int32 type.
     instance Arbitrary[Int32] {
-        type Aef = {}
-        pub def arbitrary(_: Region[r]): Gen[Int32, r] =
+        pub def arbitrary(): Gen[Int32, r] =
             sized(size -> chooseInt(-size, size))
     }
 
@@ -271,15 +269,13 @@ mod Gen {
     //         map4((w, x, y, z) -> (w, x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
     // }
 
-    // /// Arbitrary instance for for the List type.
-    // instance Arbitrary[List[a]] with Arbitrary[a] {
-    //     type Elm[List[a]] = List[a]
-    //     type Aef = {}
-    //     pub def arbitrary(): Gen[List[a], r] =
-    //         sized(size ->
-    //             chooseInt(0, size) >>= vector
-    //         )
-    // }
+    /// Arbitrary instance for for the List type.
+    instance Arbitrary[List[a]] with Arbitrary[a] {
+        pub def arbitrary(): Gen[List[a], r] =
+            sized(size ->
+                chooseInt(0, size) >>= vector
+            )
+    }
 
     // /// Arbitrary instance for the Non Empty List (Nel) type.
     // instance Arbitrary[Nel[a]] with Arbitrary[a] {
@@ -348,12 +344,11 @@ mod Gen {
     // }
 
     instance Arbitrary[Array[a, r]] with Arbitrary[a] {
-        type Aef = r
-        pub def arbitrary(rc: Region[r]): Gen[Array[a, r], r] \ r =
-            // Gen.Gen(size -> rc -> _ ->
-            //     Array.empty(rc, size)
-            // )
-            Functor.map(l -> List.toArray(rc, l), vector(5, rc))
+        pub def arbitrary(): Gen[Array[a, r], r] =
+            Gen.Gen(size -> rc -> _ ->
+                Array.empty(rc, size)
+            )
+            // Functor.map(l -> List.toArray(rc, l), vector(5, rc))
             
             
     }
