@@ -1,3 +1,4 @@
+use Monad.{>>=}
 // Definitions for List.*
 pub def runAllTests(): Unit \ IO =
     testAp();
@@ -25,7 +26,8 @@ pub def runAllTests(): Unit \ IO =
     testFoldRight();
     testFoldRight2();
 
-    testReverse()
+    testReverse();
+    testTranspose()
 
 // ap
 pub def testAp(): Unit \ IO =
@@ -690,7 +692,54 @@ def testReverse(): Unit \ IO =
 // toSet
 // toString
 // toVector
+
 // transpose
+/// Testing the properties of the List.Transpose function ///
+
+// The transpose of the transpose of a matrix is the matrix itself
+def propSelfInverse(a: List[List[Int32]]): Bool =
+    List.transpose(List.transpose(a)) == a
+
+// When transposed the dimentions should be swapped (2x3 -> 3x2)
+def propDimensions(a: List[List[Int32]]): Bool =
+    // Helper function for getting the dimensions of a matrix
+    def getDimensions(xs: List[List[Int32]]): (Int32, Int32) = (
+        let rows = List.length(xs);
+        let cols = match List.head(xs) {
+            case Some(row) => List.length(row),
+            case None => 0
+        };
+        (rows, cols)
+    );
+    let (aRows, aCols) = getDimensions(a);
+    let (a_TRows, a_TCols) = getDimensions(List.transpose(a));  
+    aRows == a_TCols and aCols == a_TRows
+    
+
+// (A + B)^T = A^T + B^T
+def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
+    // Helper function for adding two matrices
+    def addMatrix(xs: List[List[Int32]], ys: List[List[Int32]]): List[List[Int32]] = (
+        let addFunc = listPair -> List.map(intPair -> fst(intPair) + snd(intPair), List.zip(fst(listPair), snd(listPair)));
+        List.map(addFunc, List.zip(xs, ys))
+    );
+    List.transpose(addMatrix(a, b)) == addMatrix(List.transpose(a), List.transpose(b))
+    
+
+def testTranspose(): Unit \ IO =
+    let matrixGen: Gen[List[List[Int32]]] = 
+        sized(size -> 
+            chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
+        );
+    // Check that the matrix self inverse property holds
+    flixCheck(forAll(matrixGen, propSelfInverse));
+    // Check that the matrix dimensions property holds
+    flixCheck(forAll(matrixGen, propDimensions));
+    // Check that the matrix addition property holds
+    flixCheck(forAll2(matrixGen, matrixGen, propAddition))
+
+
+
 // traverse
 // unfold
 // unfoldWithIter

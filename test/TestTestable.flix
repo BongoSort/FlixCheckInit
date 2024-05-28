@@ -37,11 +37,11 @@ def propWithCollect(): Unit \ IO =
 /// Testing the properties of the List.Transpose function ///
 
 // The transpose of the transpose of a matrix is the matrix itself
-def propSelfInverse(a: List[List[Int32]]): Bool =
+def propSelfInverse2(a: List[List[Int32]]): Bool =
     List.transpose(List.transpose(a)) == a
 
 // When transposed the dimentions should be swapped (2x3 -> 3x2)
-def propDimensions(a: List[List[Int32]]): Bool =
+def propDimensions2(a: List[List[Int32]]): Bool =
     // Helper function for getting the dimensions of a matrix
     def getDimensions(xs: List[List[Int32]]): (Int32, Int32) = (
         let rows = List.length(xs);
@@ -57,7 +57,7 @@ def propDimensions(a: List[List[Int32]]): Bool =
     
 
 // (A + B)^T = A^T + B^T
-def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
+def propAddition2(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     // Helper function for adding two matrices
     def addMatrix(xs: List[List[Int32]], ys: List[List[Int32]]): List[List[Int32]] = (
         let addFunc = listPair -> List.map(intPair -> fst(intPair) + snd(intPair), List.zip(fst(listPair), snd(listPair)));
@@ -66,17 +66,17 @@ def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     List.transpose(addMatrix(a, b)) == addMatrix(List.transpose(a), List.transpose(b))
     
 
-def testTranspose(): Unit \ IO =
+def testTranspose2(): Unit \ IO =
     let matrixGen: Gen[List[List[Int32]]] = 
         sized(size -> 
             chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
         );
     // Check that the matrix self inverse property holds
-    flixCheck(forAll(matrixGen, propSelfInverse));
+    flixCheck(forAll(matrixGen, propSelfInverse2));
     // Check that the matrix dimensions property holds
-    flixCheck(forAll(matrixGen, propDimensions));
+    flixCheck(forAll(matrixGen, propDimensions2));
     // Check that the matrix addition property holds
-    flixCheck(forAll2(matrixGen, matrixGen, propAddition))
+    flixCheck(forAll2(matrixGen, matrixGen, propAddition2))
 
 
 def testClassify(): Unit \ IO =
