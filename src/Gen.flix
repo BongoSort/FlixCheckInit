@@ -108,8 +108,8 @@ mod Gen {
     /// Returns a generator that generates a list of values of type `a` of length `n`.
     ///
     /// `n` is the length of the list.
-    pub def vector(length: Int32): Gen[List[a], r] \ Arbitrary.Aef[a] with Arbitrary[a] =
-        let gens: List[Gen[a, r]] = List.map(_ -> Arbitrary.arbitrary(), List.range(0, length));
+    pub def vector(length: Int32, rc: Region[r]): Gen[List[a], r] with Arbitrary[a] =
+        let gens: List[Gen[a, r]] = List.map(_ -> Arbitrary.arbitrary(rc), List.range(0, length));
         sequence(gens)
 
     /// Returns a generator that generates a list of length `length` with values of type `a`.
@@ -211,73 +211,65 @@ mod Gen {
     /// Arbitrary trait 
     pub trait Arbitrary[a] {
         type Aef: Eff
-        pub def arbitrary(): Gen[a, r] \ Arbitrary.Aef[a]
+        pub def arbitrary(rc: Region[r]): Gen[a, r] \ Arbitrary.Aef[a]
     }
 
-    /// Arbitrary instance for the unit type.
-    instance Arbitrary[Unit] {
-        type Aef = {}
-        pub def arbitrary(): Gen[Unit, r] =
-            Applicative.point()
-    }
+    // /// Arbitrary instance for the unit type.
+    // instance Arbitrary[Unit] {
+    //     pub def arbitrary(): Gen[Unit, r] =
+    //         Applicative.point()
+    // }
 
     /// Arbitrary instance for the Int32 type.
     instance Arbitrary[Int32] {
         type Aef = {}
-        pub def arbitrary(): Gen[Int32, r] =
+        pub def arbitrary(_: Region[r]): Gen[Int32, r] =
             sized(size -> chooseInt(-size, size))
     }
 
-    /// Arbitrary instance for the Bool type.
-    instance Arbitrary[Bool] {
-        type Aef = {}
-        pub def arbitrary(): Gen[Bool, r] =
-            chooseBool()
-    }
+    // /// Arbitrary instance for the Bool type.
+    // instance Arbitrary[Bool] {
+    //     pub def arbitrary(): Gen[Bool, r] =
+    //         chooseBool()
+    // }
 
-    /// Arbitrary instance for the Char type.
-    instance Arbitrary[Char] {
-        type Aef = {}
-        pub def arbitrary(): Gen[Char, r] = 
-            chooseUpperChar()
-    }
+    // /// Arbitrary instance for the Char type.
+    // instance Arbitrary[Char] {
+    //     pub def arbitrary(): Gen[Char, r] = 
+    //         chooseUpperChar()
+    // }
 
-    /// Arbitrary instance for the Float64 type.
-    instance Arbitrary[Float64] {
-        type Aef = {}
-        pub def arbitrary(): Gen[Float64, r] = 
-            sized(size -> chooseFloat(Int32.toFloat64(-size), Int32.toFloat64(size)))
-    }
+    // /// Arbitrary instance for the Float64 type.
+    // instance Arbitrary[Float64] {
+    //     pub def arbitrary(): Gen[Float64, r] = 
+    //         sized(size -> chooseFloat(Int32.toFloat64(-size), Int32.toFloat64(size)))
+    // }
 
-    /// Arbitrary instance for the String type.
-    instance Arbitrary[String] {
-        type Aef = {}
-        pub def arbitrary(): Gen[String, r] =
-            sized(size ->
-                chooseInt(0, size) >>= (x -> chooseString(x, chooseLowerChar()))
-            )
-    }
+    // /// Arbitrary instance for the String type.
+    // instance Arbitrary[String] {
+    //     pub def arbitrary(): Gen[String, r] =
+    //         sized(size ->
+    //             chooseInt(0, size) >>= (x -> chooseString(x, chooseLowerChar()))
+    //         )
+    // }
 
-    /// Arbitrary instance for tuples
-    instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
-        type Aef = Arbitrary.Aef[a] + Arbitrary.Aef[b]
-        pub def arbitrary(): Gen[(a, b), r] \ Arbitrary.Aef[a] + Arbitrary.Aef[b] =
-            map2((x, y) -> (x, y), Arbitrary.arbitrary(), Arbitrary.arbitrary())
-    }
+    // /// Arbitrary instance for tuples
+    // instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
+    //     pub def arbitrary(): Gen[(a, b), r] =
+    //         map2((x, y) -> (x, y), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+    // }
 
-    /// Arbitrary instance for triples
-    instance Arbitrary[(a, b, c)] with Arbitrary[a], Arbitrary[b], Arbitrary[c] {
-        type Aef = Arbitrary.Aef[a] + Arbitrary.Aef[b] + Arbitrary.Aef[c]
-        pub def arbitrary(): Gen[(a, b, c), r] \ Arbitrary.Aef[a] + Arbitrary.Aef[b] + Arbitrary.Aef[c] =
-            map3((x, y, z) -> (x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
-    }
+    // /// Arbitrary instance for triples
+    // instance Arbitrary[(a, b, c)] with Arbitrary[a], Arbitrary[b], Arbitrary[c] {
+    //     pub def arbitrary(): Gen[(a, b, c), r] =
+    //         map3((x, y, z) -> (x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+    // }
 
-    /// Arbitrary instance for quadruples
-    instance Arbitrary[(a, b, c, d)] with Arbitrary[a], Arbitrary[b], Arbitrary[c], Arbitrary[d] {
-        type Aef = Arbitrary.Aef[a] + Arbitrary.Aef[b] + Arbitrary.Aef[c] + Arbitrary.Aef[d]
-        pub def arbitrary(): Gen[(a, b, c, d), r] \ Arbitrary.Aef[a] + Arbitrary.Aef[b] + Arbitrary.Aef[c] + Arbitrary.Aef[d] =
-            map4((w, x, y, z) -> (w, x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
-    }
+    // /// Arbitrary instance for quadruples
+    // instance Arbitrary[(a, b, c, d)] with Arbitrary[a], Arbitrary[b], Arbitrary[c], Arbitrary[d] {
+    //     pub def arbitrary(): Gen[(a, b, c, d), r] =
+    //         map4((w, x, y, z) -> (w, x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+    // }
 
     // /// Arbitrary instance for for the List type.
     // instance Arbitrary[List[a]] with Arbitrary[a] {
@@ -333,37 +325,36 @@ mod Gen {
     //         )
     // }
 
-    /// Arbitrary instance for the Option type.
-    instance Arbitrary[Option[a]] with Arbitrary[a] {
-        type Aef = Arbitrary.Aef[a]
-        pub def arbitrary(): Gen[Option[a], r] \ Arbitrary.Aef[a] = 
-            let func = (bool, arb) ->
-                match bool {
-                    case true => Some(arb),
-                    case false => None
-                };
-            map2(func, chooseBool(), Arbitrary.arbitrary())
-    }
+    // /// Arbitrary instance for the Option type.
+    // instance Arbitrary[Option[a]] with Arbitrary[a] {
+    //     pub def arbitrary(): Gen[Option[a], r] = 
+    //         let func = (bool, arb) ->
+    //             match bool {
+    //                 case true => Some(arb),
+    //                 case false => None
+    //             };
+    //         map2(func, chooseBool(), Arbitrary.arbitrary())
+    // }
 
-    /// Arbitrary instance for the Result type.
-    instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
-        type Aef = Arbitrary.Aef[e] + Arbitrary.Aef[t]
-        pub def arbitrary(): Gen[Result[e, t], r] \ Arbitrary.Aef[e] + Arbitrary.Aef[t] =
-            let func = (bool, eGen, tGen) ->
-                match bool {
-                    case true => Ok(tGen),
-                    case false => Err(eGen)
-                };
-            map3(func, chooseBool(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
-    }
-
-    // pub enum RegionedArray[a]
+    // /// Arbitrary instance for the Result type.
+    // instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
+    //     pub def arbitrary(): Gen[Result[e, t], r] =
+    //         let func = (bool, eGen, tGen) ->
+    //             match bool {
+    //                 case true => Ok(tGen),
+    //                 case false => Err(eGen)
+    //             };
+    //         map3(func, chooseBool(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+    // }
 
     instance Arbitrary[Array[a, r]] with Arbitrary[a] {
-        type Aef = {}
-        pub def arbitrary(rc: Region[r]): Gen[Array[a, r], r] \ {} =
-            Gen.Gen(size -> _ -> _ -> 
-                Array.empty(rc, size)
-            )   
+        type Aef = r
+        pub def arbitrary(rc: Region[r]): Gen[Array[a, r], r] \ r =
+            // Gen.Gen(size -> rc -> _ ->
+            //     Array.empty(rc, size)
+            // )
+            Functor.map(l -> List.toArray(rc, l), vector(5, rc))
+            
+            
     }
 }
