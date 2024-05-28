@@ -5,7 +5,12 @@ mod Gen {
 
     pub type alias Rand = SplittableRandom
 
-        pub enum Gen[a: Type, r: Region](
+    pub trait Gentrait[a: Type] {
+        type Reg: Eff
+        pub def generate(size: Int32, rc: Region[Gentrait.Reg[a]], rand: Rand[Gentrait.Reg[a]]): a \ Gentrait.Reg[a]
+    }
+
+    pub enum Gen[a: Type, r: Region](
         Int32 -> Region[r] -> Rand[r] -> a \ r
     )
 
@@ -349,7 +354,5 @@ mod Gen {
                 Array.empty(rc, size)
             )
             // Functor.map(l -> List.toArray(rc, l), vector(5, rc))
-            
-            
     }
 }
