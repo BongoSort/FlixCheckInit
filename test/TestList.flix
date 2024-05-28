@@ -696,6 +696,22 @@ def testReverse(): Unit \ IO =
 // transpose
 /// Testing the properties of the List.Transpose function ///
 
+def testTranspose(): Unit \ IO =
+    let matrixGen: Gen[List[List[Int32]]] = 
+        sized(size -> 
+            chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
+        );
+    // Check that the matrix self inverse property holds
+    flixCheck(forAll(matrixGen, propSelfInverse));
+    // Check that the matrix dimensions property holds
+    flixCheck(forAll(matrixGen, propDimensions));
+    // Check that the matrix addition property holds
+    flixCheck(forAll2(matrixGen, matrixGen, propAddition));
+    // Check that the matrix scalar multiplication property holds
+    flixCheck(forAll2(matrixGen, chooseInt(0, 100), propScalarMultiplication));
+    // Check that the matrix multiplication property holds
+    flixCheck(forAll2(matrixGen, matrixGen, propMatrixMultiplication))
+
 // The transpose of the transpose of a matrix is the matrix itself
 def propSelfInverse(a: List[List[Int32]]): Bool =
     List.transpose(List.transpose(a)) == a
@@ -715,7 +731,6 @@ def propDimensions(a: List[List[Int32]]): Bool =
     let (a_TRows, a_TCols) = getDimensions(List.transpose(a));  
     aRows == a_TCols and aCols == a_TRows
     
-
 // (A + B)^T = A^T + B^T
 def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     // Helper function for adding two matrices
@@ -725,18 +740,18 @@ def propAddition(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     );
     List.transpose(addMatrix(a, b)) == addMatrix(List.transpose(a), List.transpose(b))
     
+// (kA)^T= kA^T
+def propScalarMultiplication(a: List[List[Int32]], k: Int32): Bool =
+    List.transpose(List.map(row -> List.map(x -> k * x, row), a)) == List.map(row -> List.map(x -> k * x, row), List.transpose(a))
 
-def testTranspose(): Unit \ IO =
-    let matrixGen: Gen[List[List[Int32]]] = 
-        sized(size -> 
-            chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
-        );
-    // Check that the matrix self inverse property holds
-    flixCheck(forAll(matrixGen, propSelfInverse));
-    // Check that the matrix dimensions property holds
-    flixCheck(forAll(matrixGen, propDimensions));
-    // Check that the matrix addition property holds
-    flixCheck(forAll2(matrixGen, matrixGen, propAddition))
+// (AB)^T=(B^T)(A^T)
+def propMatrixMultiplication(a: List[List[Int32]], b: List[List[Int32]]): Bool =
+    // Helper function for multiplying two matrices
+    def multiplyMatrix(xs: List[List[Int32]], ys: List[List[Int32]]): List[List[Int32]] = (
+        let multiplyFunc = row -> List.map(col -> List.foldLeft2((acc, x, y) -> acc + x * y, 0, row, col), List.transpose(ys));
+        List.map(multiplyFunc, xs)
+    );
+    List.transpose(multiplyMatrix(a, b)) == multiplyMatrix(List.transpose(b), List.transpose(a))
 
 
 
