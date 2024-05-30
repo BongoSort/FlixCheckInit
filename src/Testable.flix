@@ -46,6 +46,14 @@ instance Testable[Bool] {
         result({ok = Some(b), stamp = Nil, arguments = Nil})
 }
 
+instance Testable[Option[a]] with Testable[a] {
+    pub def property(o: Option[a]): Property =
+        match o {
+            case Some(x) => Testable.property(x),
+            case None => result(nothing())
+        }
+}
+
 pub enum TestableResult(TResult)
 
 instance Testable[TestableResult] {
