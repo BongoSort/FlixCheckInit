@@ -1,10 +1,35 @@
 
 use Monad.{>>=}
-use SplittableRandom.{split, nextBool, nextInt32, nextFloat64, nextFloat32}
+use SplittableRandom.{split, nextBool, nextInt32, nextInt64, nextFloat64, nextFloat32}
 
 pub type alias Rand = SplittableRandom
 
-pub enum Gen[a](Int32 -> Rand -> a \ IO)
+pub enum Gen[a] {
+    case Gen(a -> Rand -> a \ IO)
+    // case Gen64(Int64 -> Rand -> a \ IO)
+}
+
+// pub enum Size {
+//     case Int32,
+//     case Int64
+// }
+
+// pub trait Testable[a] {
+//     pub def property(x: a): Property
+// }
+
+// enum Animal {
+//     case Cat,
+//     case Dog,
+//     case Giraffe
+// }
+
+// def isTall(a: Animal): Bool = match a {
+//     case Animal.Cat        => false
+//     case Animal.Dog        => false
+//     case Animal.Giraffe    => true
+// }
+//def map(f: a -> b \ ef, x: m[a]): m[b] \ ef with Functor[m]
 
 instance Functor[Gen] {
     pub def map(f: a -> b \ ef, gen: Gen[a]): Gen[b] \ ef =
@@ -41,26 +66,35 @@ instance Monad[Gen] {
 pub def return(x: a): Gen[a] = 
     Gen.Gen(_ -> _ -> unchecked_cast(x as _ \ IO))
 
-pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a \ IO =
+pub def applyGen(gen: Gen[a], size: a, rand: Rand): a \ IO =
     match gen {
         case Gen.Gen(g) => g(size, rand)
+        case _ => unreachable!()
     }
 
+
+// /// Returns a generator that generates a value of type `a` in the interval size defines.
+// pub def sized(f: Int32 -> Gen[a]): Gen[a] = 
+//     Gen.Gen(size -> rand ->
+//         applyGen(f(size), size, rand)
+//     )
+
 /// Returns a generator that generates a value of type `a` in the interval size defines.
-pub def sized(f: Int32 -> Gen[a]): Gen[a] = 
+pub def sized(f: a -> Gen[a]): Gen[a] = 
     Gen.Gen(size -> rand ->
         applyGen(f(size), size, rand)
     )
-
+    
 /// Makes sure that the generator uses the specified size.
 /// 
 /// Takes as input size and generator of type `a`.     
 ///
 /// Returns a generator that generates a value of type `a`.
-pub def resize(size: Int32, gen: Gen[a]): Gen[a] = 
+pub def resize(size: a, gen: Gen[a]): Gen[a] = 
     Gen.Gen(_ -> rand -> 
         applyGen(gen, size, rand)
     )
+
 
 pub def rand(): Gen[Rand] = 
     Gen.Gen(_ -> rand -> unchecked_cast(rand as _ \ IO))
@@ -119,8 +153,13 @@ pub def pick(n: Int32, nel: Nel[(Int32, Gen[a])]): Gen[a] =
 
 /// Returns a Generator that uniformly generates values in the interval [lower, upper]
 pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] =
-    Gen.Gen(_ -> rand ->
+    Gen.Gen(_ -> rand -> 
         nextInt32(rand, lower, upper + 1)
+    ) 
+
+pub def chooseInt64(lower: Int64, upper: Int64): Gen[Int64] =
+    Gen.Gen(_ -> rand ->
+        nextInt64(rand, lower, upper + 1i64)
     )
 
 // TODO size in Gen promises an Int32...
@@ -201,14 +240,10 @@ instance Arbitrary[Int32] {
         sized(size -> chooseInt(-size, size))
 }
 
-// /// Arbitrary instance for the Int32 type.
-// instance Arbitrary[Int8] {
-//     pub def arbitrary(): Gen[Int8] =
-//         sized(size -> match chooseFloat(Int32.tryToInt8(-size), Int32.tryToInt8(size)) {
-//             case Some(x) => x,
-//             case None => unreachable!()
-//         })
-// }
+instance Arbitrary[Int64] {
+    pub def arbitrary(): Gen[Int64] =
+        sized(size -> chooseInt64(-size, size))
+}
 
 /// Arbitrary instance for the Bool type.
 instance Arbitrary[Bool] {
@@ -225,13 +260,13 @@ instance Arbitrary[Char] {
 /// Arbitrary instance for the Float64 type.
 instance Arbitrary[Float64] {
     pub def arbitrary(): Gen[Float64] = 
-        sized(size -> chooseFloat(Int32.toFloat64(-size), Int32.toFloat64(size)))
+        sized(size -> chooseFloat(-size, size))
 }
 
 /// Arbitrary instance for the Float32 type.
 instance Arbitrary[Float32] {
     pub def arbitrary(): Gen[Float32] = 
-        sized(size -> chooseFloat32(Int32.toFloat32(-size), Int32.toFloat32(size)))
+        sized(size -> chooseFloat32(-size, size))
 }
 
 /// Arbitrary instance for the String type.

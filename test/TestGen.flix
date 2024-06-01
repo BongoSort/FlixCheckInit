@@ -43,3 +43,10 @@ pub def testFloat32_2(): Unit \ IO =
     let gen: Gen[Float32] = Arbitrary.arbitrary();
     def prop(x: Float32): Bool = x >= -18.0f32 and x <= 18.0f32;
     flixCheck(forAll(gen, prop))
+
+pub def testInt64(): Unit \ IO =
+    let gen: Gen[Int64] = Arbitrary.arbitrary();
+    let ll = sampleNTimes(10, 20, freshWithSeed(Time.Epoch.microseconds()), gen, false);
+    foreach (l <- ll) {
+            println(l)
+        }

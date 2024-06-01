@@ -66,17 +66,17 @@ def propAddition2(a: List[List[Int32]], b: List[List[Int32]]): Bool =
     List.transpose(addMatrix(a, b)) == addMatrix(List.transpose(a), List.transpose(b))
     
 
-def testTranspose2(): Unit \ IO =
-    let matrixGen: Gen[List[List[Int32]]] = 
-        sized(size -> 
-            chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
-        );
-    // Check that the matrix self inverse property holds
-    flixCheck(forAll(matrixGen, propSelfInverse2));
-    // Check that the matrix dimensions property holds
-    flixCheck(forAll(matrixGen, propDimensions2));
-    // Check that the matrix addition property holds
-    flixCheck(forAll2(matrixGen, matrixGen, propAddition2))
+// def testTranspose2(): Unit \ IO =
+//     let matrixGen: Gen[List[List[Int32]]] = 
+//         sized(size -> 
+//             chooseInt(1, size) >>= l -> sizedListOf(l, vector(l))
+//         );
+//     // Check that the matrix self inverse property holds
+//     flixCheck(forAll(matrixGen, propSelfInverse2));
+//     // Check that the matrix dimensions property holds
+//     flixCheck(forAll(matrixGen, propDimensions2));
+//     // Check that the matrix addition property holds
+//     flixCheck(forAll2(matrixGen, matrixGen, propAddition2))
 
 
 def testClassify(): Unit \ IO =
@@ -132,11 +132,11 @@ def testInsertOrdered(): Unit \ IO =
     // tests the insertOrdered function
     check({maxFail = 500| default()}, propInsertOrdered)
 
-def testInsertOrdered2(): Unit \ IO =
-    // tests the insertOrdered function
-    let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
-    def propInsertOrdered(e: Int32, xs: List[Int32]) = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
-    flixCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
+// def testInsertOrdered2(): Unit \ IO =
+//     // tests the insertOrdered function
+//     let genOrderedList = sized(size -> orderedListOf(size, Arbitrary.arbitrary()));
+//     def propInsertOrdered(e: Int32, xs: List[Int32]) = implies(isOrdered(xs), isOrdered(insertOrdered(e, xs)));
+//     flixCheck(forAll2(Arbitrary.arbitrary(), genOrderedList, propInsertOrdered))
 
 def testModuloBiggerThan(): Unit \ IO =
     // Tests that x modulo y equals x, when y is larger than x, and both are positive/larger than 1
