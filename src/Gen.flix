@@ -1,6 +1,6 @@
 
 use Monad.{>>=}
-use SplittableRandom.{split, nextBool, nextInt32, nextFloat64, nextFloat32}
+use SplittableRandom.{split, nextBool, nextInt32, nextInt64, nextFloat64, nextFloat32}
 
 pub type alias Rand = SplittableRandom
 
@@ -133,7 +133,6 @@ pub def chooseInt8(lower: Int8, upper: Int8): Gen[Int8] =
         }
     )
 
-
 pub def chooseInt16(lower: Int16, upper: Int16): Gen[Int16] =
     Gen.Gen(_ -> rand ->
         match Int32.tryToInt16(nextInt32(rand, Int16.toInt32(lower), Int16.toInt32(upper) + 1i32)) {
@@ -141,8 +140,11 @@ pub def chooseInt16(lower: Int16, upper: Int16): Gen[Int16] =
             case None => unreachable!()
         }
     )
+
+pub def chooseInt64(lower: Int64, upper: Int64): Gen[Int64] =
+    Gen.Gen(_ -> rand ->
+        nextInt64(rand, lower, upper + 1i64))
         
-    
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
     Gen.Gen(_ -> rand ->
@@ -204,6 +206,12 @@ pub trait Arbitrary[a] {
 instance Arbitrary[Unit] {
     pub def arbitrary(): Gen[Unit] =
         Applicative.point()
+}
+
+/// Arbitrary instance for the Int64 type.
+instance Arbitrary[Int64] {
+    pub def arbitrary(): Gen[Int64] =
+        sized(size -> chooseInt64(Int32.toInt64(-size), Int32.toInt64(size)))
 }
 
 /// Arbitrary instance for the Int32 type.

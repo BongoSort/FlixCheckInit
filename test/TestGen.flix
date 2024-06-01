@@ -93,3 +93,15 @@ pub def testInt16Bounds(): Unit \ IO =
     let gen: Gen[Int16] = chooseInt16(-32767i16, 32767i16);
     def prop(x: Int16): Bool = x >= -32768i16 and x <= 32767i16;
     flixCheck(forAll(gen, prop))
+
+pub def testInt64Bounds(): Unit \ IO =
+    let gen: Gen[Int64] = chooseInt64(-9223372036854775807i64, 9223372036854775806i64);
+    def prop(x: Int64): Bool = x >= -9223372036854775808i64 and x <= 9223372036854775806i64;
+    flixCheck(forAll(gen, prop))
+
+pub def testInt64(): Unit \ IO =
+        let gen: Gen[Int64] = Arbitrary.arbitrary();
+    let ll = sampleNTimes(100, 2000000000, freshWithSeed(Time.Epoch.microseconds()), gen, false);
+    foreach (l <- ll) {
+            println(l)
+        }
