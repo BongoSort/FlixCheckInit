@@ -1,6 +1,6 @@
 
 use Monad.{>>=}
-use SplittableRandom.{split, nextBool, nextInt32, nextFloat64}
+use SplittableRandom.{split, nextBool, nextInt32, nextFloat64, nextFloat32}
 
 pub type alias Rand = SplittableRandom
 
@@ -123,16 +123,31 @@ pub def chooseInt(lower: Int32, upper: Int32): Gen[Int32] =
         nextInt32(rand, lower, upper + 1)
     )
 
+// TODO size in Gen promises an Int32...
+pub def chooseInt8(lower: Int8, upper: Int8): Gen[Int8] =
+    Gen.Gen(_ -> rand -> 
+         //Int32.tryToInt8(nextInt32(rand, Int8.toInt32(lower), Int8.toInt32(upper))) upper32+1??
+    match Int32.tryToInt8(nextInt32(rand, Int8.toInt32(lower), Int8.toInt32(upper))) {
+        case Some(x) => x,
+        case None => unreachable!()
+    })
+    
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
     Gen.Gen(_ -> rand ->
         nextBool(rand)
     )
 
-/// Returns a generator that uniformly generates a float value in the interval [lower, upper]
+/// Returns a generator that uniformly generates a float64 value in the interval [lower, upper]
 pub def chooseFloat(lower: Float64, upper: Float64): Gen[Float64] =
     Gen.Gen(_ -> rand ->
         nextFloat64(rand, lower, upper)
+    )
+
+/// Returns a generator that uniformly generates a float32 value in the interval [lower, upper]
+pub def chooseFloat32(lower: Float32, upper: Float32): Gen[Float32] =
+    Gen.Gen(_ -> rand ->
+        nextFloat32(rand, lower, upper)
     )
 
 /// Returns a generator that uniformly generates a lower case character.
@@ -186,6 +201,15 @@ instance Arbitrary[Int32] {
         sized(size -> chooseInt(-size, size))
 }
 
+// /// Arbitrary instance for the Int32 type.
+// instance Arbitrary[Int8] {
+//     pub def arbitrary(): Gen[Int8] =
+//         sized(size -> match chooseFloat(Int32.tryToInt8(-size), Int32.tryToInt8(size)) {
+//             case Some(x) => x,
+//             case None => unreachable!()
+//         })
+// }
+
 /// Arbitrary instance for the Bool type.
 instance Arbitrary[Bool] {
     pub def arbitrary(): Gen[Bool] =
@@ -202,6 +226,12 @@ instance Arbitrary[Char] {
 instance Arbitrary[Float64] {
     pub def arbitrary(): Gen[Float64] = 
         sized(size -> chooseFloat(Int32.toFloat64(-size), Int32.toFloat64(size)))
+}
+
+/// Arbitrary instance for the Float32 type.
+instance Arbitrary[Float32] {
+    pub def arbitrary(): Gen[Float32] = 
+        sized(size -> chooseFloat32(Int32.toFloat32(-size), Int32.toFloat32(size)))
 }
 
 /// Arbitrary instance for the String type.
