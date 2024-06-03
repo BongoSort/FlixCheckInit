@@ -163,4 +163,6 @@ def testSizes(): Unit \ IO =
     println("Testing n/3+1");
     check({size = n -> n/3+1 | default()}, TFunc.TFunc(x -> x < 100));
     println("Testing n*2 + 1");
-    check({size = n -> n*2 + 1 | verbose()}, TFunc.TFunc(x -> x < 100))
+    check({size = n -> n*2 + 1 | default()}, TFunc.TFunc(x -> x < 100));
+    println("Testing n, 1000 tests, should stop after a while");
+    check({size = n -> n, maxTest = 1000 | verbose()}, TFunc.TFunc(x -> x < 100))
