@@ -142,3 +142,25 @@ def testModuloBiggerThan(): Unit \ IO =
     // Tests that x modulo y equals x, when y is larger than x, and both are positive/larger than 1
     def propModulo(x: Int32, y: Int32) = implies(y > x and y > 1 and x > 1, Int32.modulo(x, y) == x);
     verboseCheck(TFunc2.TFunc2(propModulo))
+
+def testDistribution(): Unit \ IO =
+    // tests the size parameter
+    def propDist(n: Int32): Property = (
+        (n == n) |>
+        classify(n < 0, "negative") |>
+        classify(n == 0, "zero") |>
+        classify(n > 0, "positive")
+    );
+    flixCheck(forAll(chooseInt(-10, 10), propDist))
+
+def testSizes(): Unit \ IO =
+    println("Testing n*2");
+    check({size = n -> n*2 | default()}, TFunc.TFunc(x -> x < 100));
+    println("Testing _ -> 100");
+    check({size = _ -> 100 | default()}, TFunc.TFunc(x -> x < 100));
+    println("Testing n/2+3");
+    check({size = n -> n/2+3 | default()}, TFunc.TFunc(x -> x < 100));
+    println("Testing n/3+1");
+    check({size = n -> n/3+1 | default()}, TFunc.TFunc(x -> x < 100));
+    println("Testing n*2 + 1");
+    check({size = n -> n*2 + 1 | verbose()}, TFunc.TFunc(x -> x < 100))
