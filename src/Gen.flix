@@ -117,6 +117,18 @@ pub def pick(n: Int32, nel: Nel[(Int32, Gen[a])]): Gen[a] =
             unreachable!()
     }
 
+pub def sizedRedBlackTree(size: Int32, genK: Gen[k], genV: Gen[v]): Gen[RedBlackTree[k, v]] =
+    match size {
+        case 0 => 
+            return(RedBlackTree.empty)
+        case _ => 
+            let half = size / 2;
+            let left = sizedRedBlackTree(half, genK, genV);
+            let right = sizedRedBlackTree(size - half - 1, genK, genV);
+            let gen = Applicative.map3((k, v, t) -> RedBlackTree.insert(k, v, t), genK, genV, right);
+            gen >>= (t -> genK >>= (k -> genV >>= (v -> left >>= (l -> return(RedBlackTree.insert(k, v, l, t))))))
+    }
+
 /// Returns a Generator that uniformly generates values in the interval [lower, upper] for Int8
 pub def chooseInt8(lower: Int32, upper: Int32): Gen[Int8] =
     Gen.Gen(_ -> rand ->

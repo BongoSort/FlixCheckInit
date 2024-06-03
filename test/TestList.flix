@@ -716,7 +716,7 @@ def testTranspose(): Unit \ IO =
 def propSelfInverse(a: List[List[Int32]]): Bool =
     List.transpose(List.transpose(a)) == a
 
-// When transposed the dimentions should be swapped (2x3 -> 3x2)
+// When transposed the dimensions should be swapped (2x3 -> 3x2)
 def propDimensions(a: List[List[Int32]]): Bool =
     // Helper function for getting the dimensions of a matrix
     def getDimensions(xs: List[List[Int32]]): (Int32, Int32) = (
