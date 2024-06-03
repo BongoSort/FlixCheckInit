@@ -593,7 +593,7 @@ pub def testFoldRight2(): Unit \ IO =
     //     case x :: xs => f(x, _ -> foldRightWithCont(f, z, xs))
 //     // }
 // pub def testFoldRightWithCont(): Unit \ IO =
-// TODO, I have no clue to how to test this yet
+// TODO
 
 pub def devTest(): Unit \ IO  =
 
