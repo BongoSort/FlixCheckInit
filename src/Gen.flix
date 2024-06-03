@@ -41,6 +41,7 @@ instance Monad[Gen] {
 pub def return(x: a): Gen[a] = 
     Gen.Gen(_ -> _ -> unchecked_cast(x as _ \ IO))
 
+/// Applies the generator to the given size and random number generator.
 pub def applyGen(gen: Gen[a], size: Int32, rand: Rand): a \ IO =
     match gen {
         case Gen.Gen(g) => g(size, rand)
@@ -126,7 +127,7 @@ pub def chooseInt8(lower: Int32, upper: Int32): Gen[Int8] =
             nextInt32(rand, lower, upper + 1)
         )
     )
-
+/// Returns a Generator that uniformly generates values in the interval [lower, upper] for Int16
 pub def chooseInt16(lower: Int32, upper: Int32): Gen[Int16] =
     Gen.Gen(_ -> rand ->
         Int32.clampToInt16(
@@ -185,6 +186,7 @@ pub def chooseUpperChar(): Gen[Char] =
     'P' :: 'Q' :: 'R' :: 'S' :: 'T' :: 'U' :: 'V' ::
     'W' :: 'X' :: 'Y' :: 'Z' :: Nil))
 
+/// Returns a generator that uniformly generates a character that is not a letter or a digit.
 pub def chooseOtherChar(): Gen[Char] =
     elements(Nel.Nel('!', 
     '"' :: '#' :: '$' :: '%' :: '&' :: '\'' :: '(' :: 
