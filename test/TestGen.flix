@@ -85,17 +85,17 @@ pub def testInt8_2(): Unit \ IO =
     flixCheck(forAll(gen, prop))
 
 pub def testInt8Bounds(): Unit \ IO =
-    let gen: Gen[Int8] = chooseInt8(-127i8, 25i8);
+    let gen: Gen[Int8] = chooseInt8(-127, 25);
     def prop(x: Int8): Bool = x >= -128i8 and x <= 127i8;
     verboseCheck(forAll(gen, prop))
 
 pub def testInt16Bounds(): Unit \ IO =
-    let gen: Gen[Int16] = chooseInt16(-32767i16, 32767i16);
+    let gen: Gen[Int16] = chooseInt16(-32767, 32767);
     def prop(x: Int16): Bool = x >= -32768i16 and x <= 32767i16;
     flixCheck(forAll(gen, prop))
 
 pub def testInt64Bounds(): Unit \ IO =
-    let gen: Gen[Int64] = chooseInt64(-9223372036854775807i64, 9223372036854775806i64);
+    let gen: Gen[Int64] = chooseInt64(Int64.minValue(), Int64.maxValue());
     def prop(x: Int64): Bool = x >= -9223372036854775808i64 and x <= 9223372036854775806i64;
     flixCheck(forAll(gen, prop))
 

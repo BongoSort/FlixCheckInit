@@ -232,7 +232,6 @@ instance Arbitrary[Int32] {
         sized(size -> chooseInt(-size, size))
 }
 
-
 /// Arbitrary instance for the Int64 type.
 instance Arbitrary[Int64] {
     pub def arbitrary(): Gen[Int64] =
@@ -259,16 +258,16 @@ instance Arbitrary[Char] {
         oneOf(Nel.Nel(chooseLowerChar(), chooseUpperChar() :: Nil))
 }
 
-/// Arbitrary instance for the Float64 type.
-instance Arbitrary[Float64] {
-    pub def arbitrary(): Gen[Float64] = 
-        sized(size -> chooseFloat64(Int32.toFloat64(-size), Int32.toFloat64(size)))
-}
-
 /// Arbitrary instance for the Float32 type.
 instance Arbitrary[Float32] {
     pub def arbitrary(): Gen[Float32] = 
         sized(size -> chooseFloat32(Int32.toFloat32(-size), Int32.toFloat32(size)))
+}
+
+/// Arbitrary instance for the Float64 type.
+instance Arbitrary[Float64] {
+    pub def arbitrary(): Gen[Float64] = 
+        sized(size -> chooseFloat64(Int32.toFloat64(-size), Int32.toFloat64(size)))
 }
 
 /// Arbitrary instance for the String type.
