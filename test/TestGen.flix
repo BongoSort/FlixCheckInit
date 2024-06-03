@@ -105,3 +105,9 @@ pub def testInt64(): Unit \ IO =
     foreach (l <- ll) {
             println(l)
         }
+pub def testBigInt(): Unit \ IO =
+    let gen: Gen[BigInt] = Arbitrary.arbitrary();
+    let ll = sampleNTimes(10, 20000, freshWithSeed(Time.Epoch.microseconds()), gen, false);
+    foreach (l <- ll) {
+            println(l)
+        }

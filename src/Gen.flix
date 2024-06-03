@@ -140,10 +140,19 @@ pub def chooseInt16(lower: Int16, upper: Int16): Gen[Int16] =
             case None => unreachable!()
         }
     )
-
+    
+/// Returns a Generator that uniformly generates values in the interval [lower, upper] for Int64
 pub def chooseInt64(lower: Int64, upper: Int64): Gen[Int64] =
     Gen.Gen(_ -> rand ->
-        nextInt64(rand, lower, upper + 1i64))
+        nextInt64(rand, lower, upper + 1i64)
+    )
+
+/// Returns a generator that uniformly generates a BigInt value in the interval [lower, upper]
+pub def chooseBigInt(lower: Int32, upper: Int32): Gen[BigInt] =
+      Gen.Gen(_ -> rand ->
+        Int32.toBigInt(nextInt32(rand, lower, upper + 1))
+    )
+            
         
 /// Returns a generator that uniformly generates a boolean value.
 pub def chooseBool(): Gen[Bool] =
@@ -208,16 +217,16 @@ instance Arbitrary[Unit] {
         Applicative.point()
 }
 
-/// Arbitrary instance for the Int64 type.
-instance Arbitrary[Int64] {
-    pub def arbitrary(): Gen[Int64] =
-        sized(size -> chooseInt64(Int32.toInt64(-size), Int32.toInt64(size)))
-}
-
-/// Arbitrary instance for the Int32 type.
-instance Arbitrary[Int32] {
-    pub def arbitrary(): Gen[Int32] =
-        sized(size -> chooseInt(-size, size))
+/// Arbitrary instance for the Int8 type.
+instance Arbitrary[Int8] {
+    pub def arbitrary(): Gen[Int8] =
+        sized(size -> chooseInt8(match Int32.tryToInt8(-size) {
+            case Some(x) => x
+            case None => -128i8 // if OOB, choose the min value
+        }, match Int32.tryToInt8(size) {
+            case Some(x) => x
+            case None => 127i8 // if OOB, choose the max value
+        }))
 }
 
 /// Arbitrary instance for the Int16 type.
@@ -232,16 +241,21 @@ instance Arbitrary[Int16] {
         }))
 }
 
-/// Arbitrary instance for the Int8 type.
-instance Arbitrary[Int8] {
-    pub def arbitrary(): Gen[Int8] =
-        sized(size -> chooseInt8(match Int32.tryToInt8(-size) {
-            case Some(x) => x
-            case None => -128i8 // if OOB, choose the min value
-        }, match Int32.tryToInt8(size) {
-            case Some(x) => x
-            case None => 127i8 // if OOB, choose the max value
-        }))
+/// Arbitrary instance for the Int32 type.
+instance Arbitrary[Int32] {
+    pub def arbitrary(): Gen[Int32] =
+        sized(size -> chooseInt(-size, size))
+}
+
+/// Arbitrary instance for the Int64 type.
+instance Arbitrary[Int64] {
+    pub def arbitrary(): Gen[Int64] =
+        sized(size -> chooseInt64(Int32.toInt64(-size), Int32.toInt64(size)))
+}
+
+instance Arbitrary[BigInt] {
+    pub def arbitrary(): Gen[BigInt] =
+        sized(size -> chooseBigInt(-size, size))
 }
 
 /// Arbitrary instance for the Bool type.
