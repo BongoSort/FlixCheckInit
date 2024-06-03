@@ -99,6 +99,10 @@ pub def frequency(xs: Nel[(Int32, Gen[a])]): Gen[a] =
     let total = Nel.foldLeft((acc, x) -> acc + fst(x), 0, xs);
     chooseInt(1, total) >>= (n -> pick(n, xs))
 
+pub def lazyFrequency(xs: Nel[(Int32, Lazy[Gen[a]])]): Gen[a] =
+    let total = Nel.foldLeft((acc, x) -> acc + fst(x), 0, xs);
+    chooseInt(1, total) >>= (n -> pick(n, xs))
+
 /// Returns a randomly generated value of type `a` based on the given frequency distribution.
 ///
 /// `n` is the number used to select a generator based on its frequency.
@@ -106,16 +110,20 @@ pub def frequency(xs: Nel[(Int32, Gen[a])]): Gen[a] =
 /// `nel` is the non-empty list of tuples containing frequencies and generators.
 ///
 /// Returns a randomly generated value of type `a`.
-pub def pick(n: Int32, nel: Nel[(Int32, Gen[a])]): Gen[a] =
+pub def pick(n: Int32, nel: Nel[(Int32, b)]): Gen[a] =
     match nel {
         case Nel.Nel((k, gen), _) if (n <= k) => 
-            gen,
+            typematch gen {
+                case g: Lazy[Gen[a]] => force g,
+                case g: Gen[a] => g,
+                case _:_ => unreachable!() 
+            }
         case Nel.Nel((k, _), y :: ys) =>
             pick(n-k, Nel.Nel(y, ys))
         case Nel.Nel((_, _), Nil) =>
             // This should never happen as the sum of all frequencies are equal to n.
             unreachable!()
-    }
+}
 
 /// Returns a Generator that uniformly generates values in the interval [lower, upper] for Int8
 pub def chooseInt8(lower: Int32, upper: Int32): Gen[Int8] =
@@ -359,4 +367,18 @@ instance Arbitrary[Result[e, t]] with Arbitrary[e], Arbitrary[t] {
                 case false => Err(eGen)
             };
         Applicative.map3(func, chooseBool(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+}
+
+instance Arbitrary[Set[a]] with Arbitrary[a], Order[a] {
+    pub def arbitrary(): Gen[Set[a]] =
+        sized(size -> 
+            Functor.map(List.toSet, vector(size))
+        )
+}
+
+instance Arbitrary[Map[k, v]] with Arbitrary[k], Order[k], Arbitrary[v] {
+    pub def arbitrary(): Gen[Map[k, v]] =
+        sized(size -> 
+            Functor.map(List.toMap, vector(size))
+        )
 }
