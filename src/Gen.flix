@@ -163,16 +163,16 @@ pub def chooseBool(): Gen[Bool] =
         nextBool(rand)
     )
 
-/// Returns a generator that uniformly generates a float32 value in the interval [lower, upper]
+/// Returns a generator that uniformly generates a float32 value in the interval [lower, upper[ where the upper bound is exclusive.
 pub def chooseFloat32(lower: Float32, upper: Float32): Gen[Float32] =
     Gen.Gen(_ -> rand ->
-        nextFloat32(rand, lower, upper + 1.0f32)
+        nextFloat32(rand, lower, upper)
     )
 
-/// Returns a generator that uniformly generates a float64 value in the interval [lower, upper]
+/// Returns a generator that uniformly generates a float64 value in the interval [lower, upper[ where the upper bound is exclusive.
 pub def chooseFloat64(lower: Float64, upper: Float64): Gen[Float64] =
     Gen.Gen(_ -> rand ->
-        nextFloat64(rand, lower, upper + 1.0f64)
+        nextFloat64(rand, lower, upper)
     )
 
 pub def chooseBigInt(lower: Int64, upper: Int64): Gen[BigInt] =
