@@ -165,4 +165,33 @@ def testSizes(): Unit \ IO =
     println("Testing n*2 + 1");
     check({size = n -> n*2 + 1 | default()}, TFunc.TFunc(x -> x < 100));
     println("Testing n, 1000 tests, should stop after a while");
-    check({size = n -> n, maxTest = 1000 | verbose()}, TFunc.TFunc(x -> x < 100))
+    check({size = n -> n, maxTest = 1000 | verbose()}, TFunc.TFunc(x -> x < 100));
+    println("Testing n -> 15");
+    check({size = _ -> 15 | default()}, TFunc.TFunc(x -> x < 100))
+
+def testResizeUI(): Unit \ IO =
+    println("Testing standard call");
+    flixCheck(TFunc.TFunc(x -> x < 80));
+    // tests the resize function
+    let gen = resize(25, chooseInt(0, 100));
+    let prop = forAll(gen, x -> x < 80);
+    flixCheck(prop)
+
+def testSizedUI(): Unit \ IO =
+    println("Testing standard call");
+    flixCheck(TFunc.TFunc(x -> x < 95));
+    // tests the sized function
+    println("Testing sized");
+    let gen = sized(n -> chooseInt(0, n));
+    let prop = forAll(gen, x -> x < 95);
+    flixCheck(prop)
+
+
+def testResize2(): Unit \ IO =
+    // tests the resize function
+    let gen = resize(6000, chooseInt(9, 10));
+    let prop = forAll(gen, x -> x < 80);
+    flixCheck(prop);
+    let gen2 = resize(5, chooseInt(1, 4));
+    let prop2 = forAll(gen2, x -> x < 80);
+    verboseCheck(prop2)

@@ -166,17 +166,17 @@ pub def chooseBool(): Gen[Bool] =
 /// Returns a generator that uniformly generates a float32 value in the interval [lower, upper]
 pub def chooseFloat32(lower: Float32, upper: Float32): Gen[Float32] =
     Gen.Gen(_ -> rand ->
-        nextFloat32(rand, lower, upper)
+        nextFloat32(rand, lower, upper + 1.0f32)
     )
 
 /// Returns a generator that uniformly generates a float64 value in the interval [lower, upper]
 pub def chooseFloat64(lower: Float64, upper: Float64): Gen[Float64] =
     Gen.Gen(_ -> rand ->
-        nextFloat64(rand, lower, upper)
+        nextFloat64(rand, lower, upper + 1.0f64)
     )
 
 pub def chooseBigInt(lower: Int64, upper: Int64): Gen[BigInt] =
-    Functor.map(Int64.toBigInt, chooseInt64(lower, upper))
+    Functor.map(Int64.toBigInt, chooseInt64(lower, upper + 1i64))
 
 /// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
