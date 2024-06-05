@@ -205,8 +205,9 @@ pub def testEmpty(): Unit \ IO =
     }
 
 // enumerator
-// TODO ##########################
-//  Returns an iterator over l zipped with the indices of the elements.
+// TODO when effects are implemented
+//
+// Returns an iterator over l zipped with the indices of the elements.
 //
 // Implementation:
 // pub def enumerator(rc: Region[r], l: List[a]): Iterator[(Int32, a), r, r] \ r =
@@ -582,6 +583,7 @@ pub def testFoldRight2(): Unit \ IO =
     }
 
 // foldRightWithCont
+
     // ///
     // /// Applies `f` to a start value `z` and all elements in `l` going from right to left.
     // ///
