@@ -1,4 +1,3 @@
-
 use SplittableRandom.{freshWithSeed, fresh};
 use Monad.{>>=}
 
@@ -19,7 +18,6 @@ pub def chooseTreeLazy(gen: Gen[a], maxNodes: Int32): Gen[Tree[a]] =
         )
     }
 
-// branchRate is the expected number of branches for each leaf
 pub def chooseTree(gen: Gen[a], maxNodes: Int32): Gen[Tree[a]] =
     if (maxNodes <= 1) {
         Functor.map(Tree.Leaf, gen)
@@ -38,6 +36,9 @@ instance Arbitrary[Tree[a]] with Arbitrary[a] {
         sized(size -> chooseTreeLazy(Arbitrary.arbitrary(), size))
 }
 
+pub def listGen(gen: Gen[a], avgSize: Int32): Gen[List[a]] =
+    let nel = Nel.Nel((1, lazy return(Nil)), (avgSize, lazy Applicative.map2((x, y) -> List.Cons(x, y), gen, listGen(gen, avgSize))) :: Nil);
+    lazyFrequency(nel)
 
 pub def countNodes(t: Tree[a]): Int32 = 
     match t {
@@ -49,3 +50,9 @@ pub def mmm(): Unit \ IO =
     let treeGen: Gen[Tree[Int32]] = Arbitrary.arbitrary();
     let res = applyGen(treeGen, 100, fresh());
     println(countNodes(res))
+
+pub def testLazyList(): Unit \ IO =
+    let listGen = listGen(chooseInt(0, 10), 10);
+    let res = applyGen(listGen, 100, fresh());
+    println(Identity.Identity(4, 5));
+    println(List.length(res))

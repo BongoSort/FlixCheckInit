@@ -1,6 +1,6 @@
 
 use Monad.{>>=}
-use SplittableRandom.{split, nextBool, nextInt32, nextInt64, nextFloat64, nextFloat32}
+use SplittableRandom.{split, nextBool, nextInt32, nextInt64, nextFloat32, nextFloat64}
 
 pub type alias Rand = SplittableRandom
 
@@ -111,7 +111,7 @@ pub def lazyFrequency(xs: Nel[(Int32, Lazy[Gen[a]])]): Gen[a] =
 /// `nel` is the non-empty list of tuples containing frequencies and generators.
 ///
 /// Returns a randomly generated value of type `a`.
-pub def pick(n: Int32, nel: Nel[(Int32, b)]): Gen[a] =
+def pick(n: Int32, nel: Nel[(Int32, b)]): Gen[a] =
     match nel {
         case Nel.Nel((k, gen), _) if (n <= k) => 
             typematch gen {
@@ -132,7 +132,7 @@ pub def chooseInt8(lower: Int32, upper: Int32): Gen[Int8] =
         Int32.clampToInt8(
             {min = Int8.minValue()}, 
             {max = Int8.maxValue()},         
-            nextInt32(rand, lower, upper + 1)
+            nextInt32(rand, lower, upper)
         )
     )
 /// Returns a Generator that uniformly generates values in the interval [lower, upper] for Int16
@@ -141,7 +141,7 @@ pub def chooseInt16(lower: Int32, upper: Int32): Gen[Int16] =
         Int32.clampToInt16(
             {min = Int16.minValue()}, 
             {max = Int16.maxValue()}, 
-            nextInt32(rand, lower, upper + 1)
+            nextInt32(rand, lower, upper)
         )
     )
 
@@ -176,7 +176,7 @@ pub def chooseFloat64(lower: Float64, upper: Float64): Gen[Float64] =
     )
 
 pub def chooseBigInt(lower: Int64, upper: Int64): Gen[BigInt] =
-    Functor.map(Int64.toBigInt, chooseInt64(lower, upper + 1i64))
+    Functor.map(Int64.toBigInt, chooseInt64(lower, upper))
 
 /// Returns a generator that uniformly generates a lower case character.
 pub def chooseLowerChar(): Gen[Char] =
