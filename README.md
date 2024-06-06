@@ -81,4 +81,4 @@ Maybe we want it to be verbose, and use 42 tests:
 check({maxTest = 42| verbose()}, TFunc.TFunc(prop_revRev))
 ```
 
-Contributors are Svend, Kasper and Rune <https://da.wikipedia.org/wiki/Svend,_Knud_og_Valdemar>
+Contributors are Svend, Kasper and Rune
