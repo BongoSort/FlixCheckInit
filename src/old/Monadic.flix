@@ -173,17 +173,29 @@ mod Monadic {
 
     instance Arbitrary[(a, b)] with Arbitrary[a], Arbitrary[b] {
         pub def arbitrary(): Gen[(a, b)] =
-            Applicative.map2((x, y) -> (x, y), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+            forM (
+                a <- Arbitrary.arbitrary();
+                b <- Arbitrary.arbitrary()
+            ) yield (a, b)
     }
 
     instance Arbitrary[(a, b, c)] with Arbitrary[a], Arbitrary[b], Arbitrary[c] {
         pub def arbitrary(): Gen[(a, b, c)] =
-            Applicative.map3((x, y, z) -> (x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+            forM (
+                a <- Arbitrary.arbitrary();
+                b <- Arbitrary.arbitrary();
+                c <- Arbitrary.arbitrary()
+            ) yield (a, b, c)
     }
 
     instance Arbitrary[(a, b, c, d)] with Arbitrary[a], Arbitrary[b], Arbitrary[c], Arbitrary[d] {
         pub def arbitrary(): Gen[(a, b, c, d)] =
-            Applicative.map4((w, x, y, z) -> (w, x, y, z), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary(), Arbitrary.arbitrary())
+            forM (
+                a <- Arbitrary.arbitrary();
+                b <- Arbitrary.arbitrary();
+                c <- Arbitrary.arbitrary();
+                d <- Arbitrary.arbitrary()
+            ) yield (a, b, c, d)
     }
 
     instance Arbitrary[List[a]] with Arbitrary[a] {
