@@ -50,12 +50,11 @@ pub def createConfig(maxTest: Int32, maxFail: Int32, size: Int32 -> Int32, every
 }
 
 /// Generates the test arguments for the test
-pub def generate(sizeBound: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
+pub def generate(size: Int32, rand: SplittableRandom, gen: Gen[a]): a \ IO =
     match gen {
         case Gen.Gen(g) => 
-            let (r1, r2) = split(rand);
-            let size = nextInt32(r1, 0, sizeBound+1);
-            g(size, r2)  
+            let (r1, _) = split(rand);
+            g(size, r1)  
     }
 
 /// A verbose version of the default config, prints more detailed information about the tests
